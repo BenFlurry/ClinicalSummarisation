@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="MainWindow.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="MainWindow.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
+    <ClCompile Include="summarisation.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="summarisation.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{e48dc53e-40b1-40cb-970a-f89935452892}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="app.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\icudt70.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\icuuc70.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_auto_batch_plugin.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_auto_plugin.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_c.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_genai.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_genai_c.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_hetero_plugin.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_intel_cpu_plugin.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_intel_gpu_plugin.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_intel_npu_plugin.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_ir_frontend.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_onnx_frontend.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_paddle_frontend.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_pytorch_frontend.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_tensorflow_frontend.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_tensorflow_lite_frontend.dll" />
+    <None Include="..\External\OpenVINO\runtime\bin\intel64\Release\openvino_tokenizers.dll" />
+    <None Include="..\External\OpenVINO\runtime\3rdparty\tbb\bin\tbb12.dll" />
+    <None Include="..\External\OpenVINO\runtime\3rdparty\tbb\bin\tbbbind_2_5.dll" />
+    <None Include="..\External\OpenVINO\runtime\3rdparty\tbb\bin\tbbmalloc.dll" />
+    <None Include="..\External\OpenVINO\runtime\3rdparty\tbb\bin\tbbmalloc_proxy.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="$(MSBuildThisFileDirectory)..\..\natvis\wil.natvis" />
+    <Natvis Include="$(MSBuildThisFileDirectory)..\..\natvis\wil.natstepfilter" />
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="Med42-int4\chat_template.jinja" />
+    <CopyFileToFolders Include="Med42-int4\config.json" />
+    <CopyFileToFolders Include="Med42-int4\generation_config.json" />
+    <CopyFileToFolders Include="Med42-int4\openvino_config.json" />
+    <CopyFileToFolders Include="Med42-int4\openvino_detokenizer.bin" />
+    <CopyFileToFolders Include="Med42-int4\openvino_detokenizer.xml" />
+    <CopyFileToFolders Include="Med42-int4\openvino_model.bin" />
+    <CopyFileToFolders Include="Med42-int4\openvino_model.xml" />
+    <CopyFileToFolders Include="Med42-int4\openvino_tokenizer.bin" />
+    <CopyFileToFolders Include="Med42-int4\tokenizer.json" />
+    <CopyFileToFolders Include="Med42-int4\special_tokens_map.json" />
+    <CopyFileToFolders Include="Med42-int4\openvino_tokenizer.xml" />
+    <CopyFileToFolders Include="Med42-int4\tokenizer_config.json" />
+  </ItemGroup>
+</Project>
