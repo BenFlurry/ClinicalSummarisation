@@ -118,11 +118,21 @@
       <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\OpenVINO\runtime\lib\intel64\Release;auto packageFolder = winrt::Windows::ApplicationModel::Package::Current().InstalledLocation()</AdditionalLibraryDirectories>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(CoreLibraryDependencies);%(AdditionalDependencies);openvino.lib;openvino_genai.lib</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Manifest Include="app.manifest" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AudioRecorder.h" />
+    <ClInclude Include="AudioRecordingThread.h" />
+    <ClInclude Include="AudioStructures.h" />
+    <ClInclude Include="AudioTranscriptionBridge.h" />
+    <ClInclude Include="Helpers.h" />
+    <ClInclude Include="miniaudio.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="App.xaml.h">
       <DependentUpon>App.xaml</DependentUpon>
@@ -130,12 +140,17 @@
     <ClInclude Include="MainWindow.xaml.h">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </ClInclude>
+    <ClInclude Include="TranscriptionEngine.h" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml" />
     <Page Include="MainWindow.xaml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AudioRecorder.cpp" />
+    <ClCompile Include="AudioRecordingThread.cpp" />
+    <ClCompile Include="AudioTranscriptionBridge.cpp" />
+    <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -147,6 +162,7 @@
     </ClCompile>
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
     <ClCompile Include="summarisation.cpp" />
+    <ClCompile Include="TranscriptionEngine.cpp" />
     <ClInclude Include="summarisation.hpp" />
   </ItemGroup>
   <ItemGroup>

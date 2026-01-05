@@ -13,10 +13,22 @@
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
     <ClCompile Include="summarisation.cpp" />
+    <ClCompile Include="AudioRecordingThread.cpp" />
+    <ClCompile Include="AudioTranscriptionBridge.cpp" />
+    <ClCompile Include="AudioRecorder.cpp" />
+    <ClCompile Include="TranscriptionEngine.cpp" />
+    <ClCompile Include="Helpers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="summarisation.hpp" />
+    <ClInclude Include="AudioRecordingThread.h" />
+    <ClInclude Include="miniaudio.h" />
+    <ClInclude Include="AudioTranscriptionBridge.h" />
+    <ClInclude Include="AudioStructures.h" />
+    <ClInclude Include="AudioRecorder.h" />
+    <ClInclude Include="TranscriptionEngine.h" />
+    <ClInclude Include="Helpers.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Assets">

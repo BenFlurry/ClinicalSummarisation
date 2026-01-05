@@ -9,25 +9,21 @@
     mc:Ignorable="d"
     Title="ClinicalSummarisation">
 
-    <StackPanel 
-        Orientation="Vertical"
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center"
-    >
-        <TextBlock x:Name="StatusText" 
-               Text="Initializing..." 
-               FontSize="24" 
-               HorizontalAlignment="Center"/>
+    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
 
-        <ProgressRing x:Name="LoadingSpinner" 
-                  IsActive="True" 
-                  Width="50" Height="50"/>
+        <TextBlock x:Name="StatusText" Text="Ready to Record" Style="{StaticResource SubtitleTextBlockStyle}"/>
 
-        <ScrollViewer Height="400" Width="600" BorderBrush="Gray" BorderThickness="1">
-            <TextBlock x:Name="OutputText" 
-                   TextWrapping="Wrap" 
-                   Padding="10" 
-                   FontSize="16"/>
-        </ScrollViewer>
+        <StackPanel Orientation="Horizontal" Spacing="20">
+            <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click"/>
+            <Button x:Name="stopRecording_btn" Content="Stop Recording" Click="stopRecording_Click" IsEnabled="False"/>
+        </StackPanel>
+
+        <TextBox x:Name="MyTextBox" 
+             Width="600" 
+             Height="300" 
+             TextWrapping="Wrap" 
+             AcceptsReturn="True" 
+             PlaceholderText="Transcription will appear here after you stop recording..."/>
+
     </StackPanel>
 </Window>

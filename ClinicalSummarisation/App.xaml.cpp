@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "App.xaml.h"
 #include "MainWindow.xaml.h"
+#include "miniaudio.h"
+
 
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;

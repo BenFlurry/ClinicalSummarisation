@@ -15,7 +15,7 @@
   <mp:PhoneIdentity PhoneProductId="4c4c3cf9-2e89-4dd7-878d-91fbb167520e" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>ClinicalSummarisation (Package)</DisplayName>
+    <DisplayName>ClincialSummarisation (Package)</DisplayName>
     <PublisherDisplayName>Admin</PublisherDisplayName>
     <Logo>Images\StoreLogo.png</Logo>
   </Properties>
@@ -31,8 +31,8 @@
 
   <Applications>
     <Application Id="App"
-      Executable="$targetnametoken$.exe"
-      EntryPoint="$targetentrypoint$">
+      Executable="ClinicalSummarisation.exe"
+      EntryPoint="ClinicalSummarisation">
       <uap:VisualElements
         DisplayName="ClincialSummarisation (Package)"
         Description="ClincialSummarisation(Package)"
@@ -47,5 +47,6 @@
 
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
+    <DeviceCapability Name="microphone" />
   </Capabilities>
 </Package>

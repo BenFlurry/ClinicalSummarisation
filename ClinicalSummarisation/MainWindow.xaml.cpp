@@ -6,7 +6,9 @@
 
 // Include your logic header
 #include "summarisation.hpp"
+#include "AudioRecordingThread.h"
 #include <thread> // Required for background execution
+#include <winrt/Windows.Storage.h>
 
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
@@ -16,41 +18,78 @@ namespace winrt::ClinicalSummarisation::implementation
     MainWindow::MainWindow()
     {
         InitializeComponent();
-
-        // Run the logic as soon as the window is created
-        RunModelAsync();
     }
 
-    void MainWindow::RunModelAsync()
+    void MainWindow::startRecording_Click(IInspectable const&, RoutedEventArgs const&)
     {
-        // 1. Update UI to show we are starting
-        StatusText().Text(L"Loading Model (This may take a moment)");
-        LoadingSpinner().IsActive(true);
+        // 1. Update UI state
+        StatusText().Text(L"Initializing AI Model... (This may take a moment)");
+        startRecording_btn().IsEnabled(false);
+        stopRecording_btn().IsEnabled(false); // Disable both while loading
+        MyTextBox().Text(L""); // Clear previous text
 
-        // 2. Start a background thread (so the window doesn't freeze)
-        std::thread([this]()
-            {
-                // --- BACKGROUND THREAD STARTS ---
+        // 2. Initialize the Components
+        if (m_recorder) delete m_recorder;
+        if (m_engine) delete m_engine;
 
-                // Call your heavy function
-                std::string result = handle_go();
+        // Create new instances connected by the SAME bridge
+        m_recorder = new AudioRecorder(&m_bridge);
+        m_engine = new TranscriptionEngine(&m_bridge);
 
-                // Convert std::string to WinRT hstring (required for XAML)
-                winrt::hstring displayResult = winrt::to_hstring(result);
+        // 3. Load the Model (Blocking call, but fast if cached)
+        // Ensure this string matches your actual folder structure!
+        try {
+            m_engine->InitialiseModel();
+        }
+        catch (const std::exception& e) {
+            winrt::hstring uiMessage = winrt::to_hstring(e.what());
+            StatusText().Text(uiMessage);
+            startRecording_btn().IsEnabled(true);
+            return;
+        }
 
-                // --- BACKGROUND THREAD ENDS ---
+        // 4. Start the Consumer Thread (The AI)
+        // We start this BEFORE the recorder so it's ready to catch the first chunk
+        if (m_processingThread.joinable()) m_processingThread.join();
 
-                // 3. Jump back to the UI Thread to update the screen
-                this->DispatcherQueue().TryEnqueue([this, displayResult]()
-                    {
-                        // We are now back on the main UI thread
-                        StatusText().Text(L"Generation Complete:");
-                        LoadingSpinner().IsActive(false);
+        m_processingThread = std::thread([this]() {
 
-                        // Display the result
-                        OutputText().Text(displayResult);
-                    });
+            // This line BLOCKS until the user clicks Stop and the loop finishes
+            std::string finalTranscript = m_engine->ProcessLoop();
 
-            }).detach(); // Detach the thread so it runs independently
+            // --- UI UPDATE ON MAIN THREAD ---
+            this->DispatcherQueue().TryEnqueue([this, finalTranscript]() {
+                // Show the result
+                MyTextBox().Text(to_hstring(finalTranscript));
+
+                // Reset UI controls
+                StatusText().Text(L"Transcription Complete.");
+                startRecording_btn().IsEnabled(true);
+                stopRecording_btn().IsEnabled(false);
+                });
+            });
+        m_processingThread.detach(); // Let it run in background
+
+        // 5. Start the Producer (The Mic)
+        m_recorder->Start();
+
+        // 6. Final UI Update
+        StatusText().Text(L"Recording... Speak now!");
+        stopRecording_btn().IsEnabled(true);
+    }
+
+    void MainWindow::stopRecording_Click(IInspectable const&, RoutedEventArgs const&)
+    {
+        StatusText().Text(L"Finalizing... Please wait.");
+        startRecording_btn().IsEnabled(false);
+        stopRecording_btn().IsEnabled(false);
+
+        // 1. Stop the Recorder
+        // This triggers the 'Flush' logic we wrote -> sends 'isLastChunk=true'
+        if (m_recorder) {
+            m_recorder->Stop();
+        }
+
+        // The UI will be re-enabled by the thread when it finishes processing!
     }
 }
