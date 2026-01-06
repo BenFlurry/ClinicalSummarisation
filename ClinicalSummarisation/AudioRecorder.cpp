@@ -100,39 +100,61 @@ void AudioRecorder::Stop() {
 
         // --- CALL IT HERE (Safe & Secure) ---
         // We save the data while it is frozen and complete
-        SaveToWav(m_currentBuffer);
+        AudioRecorder::SaveToWav(m_currentBuffer);
 
         // 3. NOW flush (which sends it to the AI and clears the buffer)
         Flush(true);
     }
 }
 void AudioRecorder::SaveToWav(const std::vector<float>& buffer) {
-    if (buffer.empty()) return;
-
-    // 1. Get the Music Library Path (Easier to find than LocalFolder)
-    auto musicFolder = winrt::Windows::Storage::KnownFolders::MusicLibrary().Path();
-    std::filesystem::path fullPath = std::filesystem::path(musicFolder.c_str()) / "debug_audio.wav";
-    std::string filename = fullPath.string();
-
-    // 2. Prepare the Header using the Struct
-    WavHeader header;
-    header.dataSize = (uint32_t)(buffer.size() * sizeof(float));
-    header.overallSize = header.dataSize + 36; // 36 = size of header minus first 8 bytes
-
-    // 3. Write the file
-    std::ofstream file(filename, std::ios::binary);
-    if (file.is_open()) {
-        file.write(reinterpret_cast<const char*>(&header), sizeof(WavHeader));
-        file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(float));
-        file.close();
-
-        OutputDebugStringA(("--- SAVED WAV TO: " + filename + " ---\n").c_str());
+    // 1. Check for empty data (common reason for "missing" files)
+    if (buffer.empty()) {
+        OutputDebugStringA("!!! ERROR: SaveToWav called with EMPTY buffer. No recording data found. !!!\n");
+        return;
     }
-    else {
-        OutputDebugStringA("--- FAILED TO OPEN FILE FOR WRITING ---\n");
+
+    try {
+        // 2. Get the LocalFolder path safely
+        auto localFolder = winrt::Windows::Storage::ApplicationData::Current().LocalFolder().Path();
+
+        // 3. Construct the path properly
+        // NOTE: We do NOT convert this to std::string yet to preserve special characters
+        std::filesystem::path fullPath = std::filesystem::path(localFolder.c_str()) / "debug_audio.wav";
+
+        // 4. Setup Header
+        WavHeader header;
+        header.dataSize = (uint32_t)(buffer.size() * sizeof(float));
+        header.overallSize = header.dataSize + 36;
+
+        // 5. Open File using the PATH object (Fixes the encoding bug)
+        // MSVC supports passing the wide-char path directly here.
+        std::ofstream file(fullPath, std::ios::binary);
+
+        if (file.is_open()) {
+            file.write(reinterpret_cast<const char*>(&header), sizeof(WavHeader));
+            file.write(reinterpret_cast<const char*>(buffer.data()), buffer.size() * sizeof(float));
+            file.close();
+
+            // 6. Log the EXACT path to confirm success
+            std::wstring widePath = fullPath.wstring(); // Convert to wstring for safe printing
+            OutputDebugStringW(L"\n=========================================\n");
+            OutputDebugStringW((L"SUCCESS: Saved WAV to:\n" + widePath).c_str());
+            OutputDebugStringW(L"\n=========================================\n");
+        }
+        else {
+            // If we get here, the path is likely locked or invalid
+            OutputDebugStringA("!!! ERROR: Could not open file for writing. Check permissions or if file is open in another app. !!!\n");
+        }
+    }
+    catch (const std::exception& e) {
+        std::string err = "!!! EXCEPTION: " + std::string(e.what()) + " !!!\n";
+        OutputDebugStringA(err.c_str());
+    }
+    catch (...) {
+        OutputDebugStringA("!!! UNKNOWN EXCEPTION while saving WAV file !!!\n");
     }
 }
-// 5. Flush (Helper to bundle data and push to bridge)
+
 void AudioRecorder::Flush(bool isLast) {
     AudioChunk chunk;
 
