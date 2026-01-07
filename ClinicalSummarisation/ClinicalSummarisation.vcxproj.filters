@@ -18,6 +18,7 @@
     <ClCompile Include="AudioRecorder.cpp" />
     <ClCompile Include="TranscriptionEngine.cpp" />
     <ClCompile Include="Helpers.cpp" />
+    <ClCompile Include="SpeakerEncoder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -29,6 +30,7 @@
     <ClInclude Include="AudioRecorder.h" />
     <ClInclude Include="TranscriptionEngine.h" />
     <ClInclude Include="Helpers.h" />
+    <ClInclude Include="SpeakerEncoder.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Assets">

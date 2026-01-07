@@ -47,6 +47,7 @@
 
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
+    <uap:Capability Name="musicLibrary"/>
     <DeviceCapability Name="microphone" />
   </Capabilities>
 </Package>

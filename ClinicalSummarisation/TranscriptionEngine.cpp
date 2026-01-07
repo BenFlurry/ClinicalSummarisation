@@ -6,6 +6,10 @@
 TranscriptionEngine::TranscriptionEngine(AudioTranscriptionBridge* bridgePtr) {
 	m_bridge = bridgePtr;
 	m_isRunning = false;
+
+    std::string encoderPath = Helpers::GetModelPath("speaker_encoder_int8/openvino_model.xml").string();
+    m_speakerEncoder = new SpeakerEncoder();
+    m_speakerEncoder->Initialize(encoderPath, "CPU");
 }
 
 TranscriptionEngine::~TranscriptionEngine() {
@@ -15,185 +19,133 @@ TranscriptionEngine::~TranscriptionEngine() {
 }
 
 void TranscriptionEngine::InitialiseModel() {
-	std::filesystem::path modelPath = Helpers::GetModelPath("whisper-medium-i8");
+	std::filesystem::path modelPath = Helpers::GetModelPath("whisper-medium-i4");
 	m_pipeline = new ov::genai::WhisperPipeline(modelPath, "CPU");
 }
 
-//std::string TranscriptionEngine::ProcessLoop() {
-//    m_fullTranscript.str("");
-//    m_isRunning = true;
-//
-//    OutputDebugStringA("--- THREAD STARTED ---\n");
-//
-//    while (m_isRunning) {
-//        // checkpoint 1
-//        AudioChunk chunk = m_bridge->Pop();
-//
-//        m_fullTranscript << "audio size:" << " ";
-//        m_fullTranscript << std::to_string(chunk.audioData.size()) << " ";
-//
-//        if (m_pipeline && !chunk.audioData.empty()) {
-//            float max_amplitude = 0.0f;
-//            for (float sample : chunk.audioData) {
-//                if (std::abs(sample) > max_amplitude) max_amplitude = std::abs(sample);
-//            }
-//
-//            m_fullTranscript << "Max amp" << " ";
-//            m_fullTranscript << std::to_string(max_amplitude) << " ";
-//
-//            //if (max_amplitude > 0.01f) {
-//            //    float gain = 0.95f / max_amplitude; // Target 95% volume
-//            //    for (size_t i = 0; i < chunk.audioData.size(); i++) {
-//            //        chunk.audioData[i] *= gain;
-//            //    }
-//            //}
-//
-//			size_t targetSampleCount = 16000 * 31;
-//
-//			size_t originalSize = chunk.audioData.size();
-//
-//			// Resize the vector (fills new space with 0.0f silence)
-//			chunk.audioData.resize(targetSampleCount, 0.0f);
-//
-//
-//            try {
-//                ov::genai::WhisperGenerationConfig config;
-//                config.max_new_tokens = 100; // Limit tokens to prevent infinite loops
-//                config.task = "transcribe";
-//                //config.language = "en";
-//                config.return_timestamps = true;
-//
-//
-//
-//                auto result = m_pipeline->generate(chunk.audioData, config);
-//
-//                OutputDebugStringA("--- GENERATE SUCCESS ---\n"); // Checkpoint 3
-//
-//                if (!result.texts.empty()) {
-//                    //m_fullTranscript << "size of result:" << " ";
-//                    //m_fullTranscript << std::to_string(result.texts.size()) << " ";
-//
-//                    //m_fullTranscript << "size of chunk" << " ";
-//                    
-//                    //auto chunk = &result.chunks;
-//                    //m_fullTranscript << std::to_string(result.chunks.value().size()) << " ";
-//
-//                    //for (auto& chunk : *result.chunks) {
-//                    //    m_fullTranscript << "timestamps: [" << chunk.start_ts << ", " << chunk.end_ts << "] text: " << chunk.text << "\n";
-//                    //}
-//
-//
-//                    std::string text = result.texts[0];
-//                    if (!text.empty()) {
-//                        m_fullTranscript << text << " ";
-//                        OutputDebugStringA(("Transcribed: " + text + "\n").c_str());
-//                    }
-//                    else {
-//                        m_fullTranscript << "empty text" << " ";
-//                    }
-//                }
-//                else {
-//                    m_fullTranscript << "Nothing heard" << " ";
-//                }
-//            }
-//            catch (const std::exception& e) {
-//                // Catch standard C++ errors (OpenVINO throws these)
-//                OutputDebugStringA("!!! EXCEPTION CAUGHT IN THREAD !!!\n");
-//                OutputDebugStringA(e.what());
-//                OutputDebugStringA("\n");
-//				m_fullTranscript << "thread exception" << " ";
-//				m_fullTranscript << e.what() << " ";
-//            }
-//            catch (...) {
-//                // Catch hard crashes (SEH / Memory violations)
-//                OutputDebugStringA("!!! UNKNOWN FATAL ERROR IN THREAD !!!\n");
-//				m_fullTranscript << "unkown fatal" << " ";
-//            }
-//        }
-//
-//        if (chunk.isLastChunk) {
-//            OutputDebugStringA("--- LAST CHUNK SIGNAL RECEIVED ---\n");
-//            m_isRunning = false;
-//			m_fullTranscript << "last chunk" << " ";
-//            if (chunk.audioData.empty()) {
-//				m_fullTranscript << "empty" << " ";
-//            }
-//            if (!m_pipeline) {
-//				m_fullTranscript << "no pipeline" << " ";
-//            }
-//        }
-//    }
-//
-//    OutputDebugStringA("--- THREAD EXITING ---\n");
-//    return m_fullTranscript.str();
-//}
 
 std::string TranscriptionEngine::ProcessLoop() {
     // Clear previous text
     m_fullTranscript.str("");
     m_isRunning = true;
 
-    // DEBUG: Log thread start
     m_fullTranscript << "[Start] ";
 
     while (m_isRunning) {
         AudioChunk chunk = m_bridge->Pop();
+        //m_fullTranscript << "\n[New Chunk]";
 
-        // Only process if valid
         if (m_pipeline && !chunk.audioData.empty()) {
 
-            // 1. DEBUG: Log Input Size
-            size_t originalSize = chunk.audioData.size();
-            m_fullTranscript << "\n[In: " << std::to_string(originalSize) << "] ";
-
-            // 2. DEBUG: Log Amplitude (Volume)
             float max_amp = 0.0f;
             for (float s : chunk.audioData) max_amp = std::max(max_amp, std::abs(s));
-            m_fullTranscript << "[Amp: " << std::to_string(max_amp).substr(0, 5) << "] ";
 
-            // 3. LOGIC: Normalization (Boost volume if too low)
+             //normalisation
             if (max_amp > 0.001f && max_amp < 0.9f) {
                 float gain = 0.9f / max_amp;
                 for (float& s : chunk.audioData) s *= gain;
-                m_fullTranscript << "[Boosted] ";
             }
 
-            // 4. LOGIC: Padding (Fix for short clips)
-            size_t target_samples = 16000 * 30; // 30 seconds
-            if (chunk.audioData.size() < target_samples) {
-                chunk.audioData.resize(target_samples, 0.0f);
-                m_fullTranscript << "[Padded] ";
-            }
-
-            m_fullTranscript << "[Type: " << typeid(chunk.audioData[0]).name()
-                << " Size: " << sizeof(chunk.audioData[0]) << "b] ";
+            // padding
+            //size_t target_samples = 16000 * 30; 
+            //if (chunk.audioData.size() < target_samples) {
+            //    chunk.audioData.resize(target_samples, 0.0f);
+            //}
 
             try {
                 ov::genai::WhisperGenerationConfig config;
                 config.max_new_tokens = 100;
                 config.task = "transcribe";
                 config.return_timestamps = true;
-                config.suppress_tokens.clear();
-                config.temperature = 0.8f;
-
-                // CRITICAL: Ensure language is NOT set for 'tiny.en'
-                // config.language = "en"; 
-
-                // 5. DEBUG: Gen Start
-                m_fullTranscript << "[Gen] ";
+                config.num_beams = 3;
 
                 auto result = m_pipeline->generate(chunk.audioData, config);
+                std::vector<float>& sourceAudio = chunk.audioData;
+                // Inside ProcessLoop... after Whisper returns 'result'
+                if (result.chunks && !result.chunks->empty()) {
+
+                    for (const auto& chunk : *result.chunks) {
+
+                        // 1. Calculate Indices
+                        // Whisper timestamps are in Seconds. Audio is 16000 Hz.
+                        size_t startIdx = (size_t)(chunk.start_ts * 16000);
+                        size_t endIdx = (size_t)(chunk.end_ts * 16000);
+
+                        // Safety Bounds Check (Critical!)
+                        if (startIdx >= sourceAudio.size()) startIdx = sourceAudio.size() - 1;
+                        if (endIdx > sourceAudio.size()) endIdx = sourceAudio.size();
+                        if (endIdx <= startIdx) continue; // Skip invalid clips
+
+                        // 2. Extract Audio Clip
+                        std::vector<float> clip(sourceAudio.begin() + startIdx, sourceAudio.begin() + endIdx);
+
+                        // 3. Get Embedding (Only if clip is long enough, e.g., > 0.5s)
+                        std::string speakerLabel = "[Unknown]";
+
+                        if (clip.size() > 8000) { // > 0.5 seconds
+
+                            float sumSquares = 0.0f;
+                            for (float sample : clip) {
+                                sumSquares += sample * sample;
+                            }
+
+                            float rms = std::sqrt(sumSquares / clip.size());
+                            
+                            m_fullTranscript << "RMS: " << std::to_string(rms) << "\n";
+
+
+                            std::vector<float> currentEmbedding = m_speakerEncoder->GetEmbedding(clip);
+
+                            // 4. Identify Speaker
+                            if (m_doctorProfile.empty()) {
+                                // First person to speak is assumed to be the Doctor
+                                m_doctorProfile = currentEmbedding;
+                                if (m_doctorProfile.empty()) {
+                                    m_fullTranscript << "\nempty embedding\n";
+                                }
+                                speakerLabel = "Doctor [Anchor]";
+                            }
+                            else {
+                                // Compare with Doctor
+                                float score = SpeakerEncoder::CosineSimilarity(m_doctorProfile, currentEmbedding);
+								std::string scoreStr = std::to_string(score).substr(0, 4); // "0.85"
+
+                                // Threshold: usually 0.5 - 0.7 for ECAPA-TDNN
+                                if (score > 0.75f) {
+                                    speakerLabel = "Doctor: " + scoreStr;
+                                }
+                                else {
+                                    speakerLabel = "Patient: " + scoreStr;
+                                }
+                            }
+                        }
+
+                        // 5. Output with Label
+                        m_fullTranscript << "[" << speakerLabel << "] " << chunk.text << "\n";
+                    }
+                }
 
                 if (!result.texts.empty()) {
                     std::string text = result.texts[0];
+
                     if (!text.empty()) {
                         // SUCCESS
-                        m_fullTranscript << " >>> " << text << " <<< ";
+                        for (const auto& segment : *result.chunks) {
+
+                            float start = segment.start_ts;
+                            float end = segment.end_ts;
+                            std::string phrase = segment.text;
+
+                            // 4. Format for the LLM (Text-Based Diarization)
+                            // By adding [Time] + Newline, you help the LLM see "turns"
+                            m_fullTranscript << "[" << std::fixed << std::setprecision(1) << start
+                                << " - " << end << "] "
+                                << phrase << "\n";
+                        }
                     }
                     else {
                         m_fullTranscript << "[EmptyStr] ";
                     }
-					m_fullTranscript << " >>> " << text << " <<< ";
                 }
                 else {
                     m_fullTranscript << "[NoRes] ";

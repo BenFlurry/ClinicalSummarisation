@@ -5,14 +5,18 @@
 #include <sstream>
 
 #include "openvino/genai/whisper_pipeline.hpp"
+#include "SpeakerEncoder.h"
 
 class TranscriptionEngine {
 private:
 	AudioTranscriptionBridge* m_bridge;
+	SpeakerEncoder* m_speakerEncoder;
 	std::stringstream m_fullTranscript;
 	std::atomic<bool> m_isRunning;
 
 	ov::genai::WhisperPipeline* m_pipeline = nullptr;
+	std::vector<float> m_doctorProfile;
+
 
 public:
 	TranscriptionEngine(AudioTranscriptionBridge* bridgePtr);
