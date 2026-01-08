@@ -18,7 +18,7 @@ public:
     // Helper to compare two fingerprints (0.0 to 1.0 score)
     static float CosineSimilarity(const std::vector<float>& vecA, const std::vector<float>& vecB);
 
-    bool is_loaded = false;
+    bool is_loaded;
 
 private:
     ov::Core m_core;

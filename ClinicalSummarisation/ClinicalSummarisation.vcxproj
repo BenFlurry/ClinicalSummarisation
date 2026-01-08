@@ -141,6 +141,7 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </ClInclude>
     <ClInclude Include="SpeakerEncoder.h" />
+    <ClInclude Include="SummarisationEngine.h" />
     <ClInclude Include="TranscriptionEngine.h" />
   </ItemGroup>
   <ItemGroup>
@@ -164,6 +165,7 @@
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
     <ClCompile Include="SpeakerEncoder.cpp" />
     <ClCompile Include="summarisation.cpp" />
+    <ClCompile Include="SummarisationEngine.cpp" />
     <ClCompile Include="TranscriptionEngine.cpp" />
     <ClInclude Include="summarisation.hpp" />
   </ItemGroup>
