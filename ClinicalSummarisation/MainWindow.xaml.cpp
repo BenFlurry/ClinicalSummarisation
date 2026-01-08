@@ -4,10 +4,6 @@
 #include "MainWindow.g.cpp"
 #endif
 
-// Include your logic header
-#include "summarisation.hpp"
-#include "AudioRecordingThread.h"
-#include <thread> // Required for background execution
 #include <winrt/Windows.Storage.h>
 
 using namespace winrt;
@@ -18,66 +14,94 @@ namespace winrt::ClinicalSummarisation::implementation
     MainWindow::MainWindow()
     {
         InitializeComponent();
+        StatusText().Text(L"Loading Transcription Models...");
+        startRecording_btn().IsEnabled(false);
+        stopRecording_btn().IsEnabled(false);
+
+        m_summariser = new SummarisationEngine();
+
+        // Use a detached thread for the initialization sequence
+        std::thread initThread([this]() {
+
+            // 1. Load Critical Models (Whisper)
+            m_recorder = new AudioRecorder(&m_bridge);
+            m_engine = new TranscriptionEngine(&m_bridge);
+            m_engine->InitialiseModel();
+
+            // 2. Enable UI immediately (User can record now)
+            this->DispatcherQueue().TryEnqueue([this]() {
+                StatusText().Text(L"Ready to Record (Loading Summariser in background...)");
+                startRecording_btn().IsEnabled(true);
+                });
+
+            // 3. Start Loading the Heavy LLM (Med42) in parallel
+            // FIX: actually call loadModel() here!
+            m_summariserLoadFuture = std::async(std::launch::async, [this]() {
+                try {
+                    m_summariser->loadModel(); // <--- THIS WAS MISSING
+                    m_isSummariserReady = true; // <--- Set the flag
+
+                    this->DispatcherQueue().TryEnqueue([this]() {
+                        // Only update text if user isn't already recording
+                        if (startRecording_btn().IsEnabled()) {
+                            StatusText().Text(L"Ready to Record (All Models Loaded)");
+                        }
+                        });
+                }
+                catch (...) {
+                    // Handle load failure safely
+                }
+                });
+            });
+        initThread.detach();
     }
 
     void MainWindow::startRecording_Click(IInspectable const&, RoutedEventArgs const&)
     {
-        // 1. Update UI state
-        StatusText().Text(L"Initializing AI Model... (This may take a moment)");
+        StatusText().Text(L"Listening...");
         startRecording_btn().IsEnabled(false);
-        stopRecording_btn().IsEnabled(false); // Disable both while loading
-        MyTextBox().Text(L""); // Clear previous text
+        stopRecording_btn().IsEnabled(true);
+        MyTextBox().Text(L"");
 
-        // 2. Initialize the Components
-        if (m_recorder) delete m_recorder;
-        if (m_engine) delete m_engine;
-
-        // Create new instances connected by the SAME bridge
-        m_recorder = new AudioRecorder(&m_bridge);
-        m_engine = new TranscriptionEngine(&m_bridge);
-
-        // 3. Load the Model (Blocking call, but fast if cached)
-        // Ensure this string matches your actual folder structure!
-        try {
-            m_engine->InitialiseModel();
-        }
-        catch (const std::exception& e) {
-            winrt::hstring uiMessage = winrt::to_hstring(e.what());
-            StatusText().Text(uiMessage);
-            startRecording_btn().IsEnabled(true);
-            return;
-        }
-
-        // 4. Start the Consumer Thread (The AI)
-        // We start this BEFORE the recorder so it's ready to catch the first chunk
+        // FIX: Handle thread cleanup safely before starting a new one
         if (m_processingThread.joinable()) m_processingThread.join();
 
+        // 1. Start the Consumer (Processing Thread)
         m_processingThread = std::thread([this]() {
 
-            // This line BLOCKS until the user clicks Stop and the loop finishes
+            // This blocks until recording stops
             std::string finalTranscript = m_engine->ProcessLoop();
 
-            // --- UI UPDATE ON MAIN THREAD ---
-            this->DispatcherQueue().TryEnqueue([this, finalTranscript]() {
-                // Show the result
-                MyTextBox().Text(to_hstring(finalTranscript));
+            // --- Post-Processing ---
+            if (!m_isSummariserReady) {
+                this->DispatcherQueue().TryEnqueue([this]() {
+                    StatusText().Text(L"Waiting for summariser to load...");
+                    });
+                // Wait for the background loader to finish
+                if (m_summariserLoadFuture.valid()) m_summariserLoadFuture.wait();
+            }
 
-                // Reset UI controls
-                StatusText().Text(L"Transcription Complete.");
+            this->DispatcherQueue().TryEnqueue([this]() {
+                StatusText().Text(L"Generating SOAP note...");
+                });
+
+            std::string soapNote = m_summariser->generateTranscription(finalTranscript);
+
+            this->DispatcherQueue().TryEnqueue([this, soapNote]() {
+                MyTextBox().Text(to_hstring(soapNote));
+                StatusText().Text(L"Process Complete");
                 startRecording_btn().IsEnabled(true);
                 stopRecording_btn().IsEnabled(false);
                 });
             });
-        m_processingThread.detach(); // Let it run in background
 
-        // 5. Start the Producer (The Mic)
+        // FIX: Do NOT detach inside the thread. Detach here.
+        m_processingThread.detach();
+
+        // FIX: Start the Recorder HERE (Outside the thread)
+        // If you put this inside the thread, it never runs because ProcessLoop blocks first.
         m_recorder->Start();
-
-        // 6. Final UI Update
-        StatusText().Text(L"Recording... Speak now!");
-        stopRecording_btn().IsEnabled(true);
     }
-
     void MainWindow::stopRecording_Click(IInspectable const&, RoutedEventArgs const&)
     {
         StatusText().Text(L"Finalizing... Please wait.");
@@ -89,7 +113,5 @@ namespace winrt::ClinicalSummarisation::implementation
         if (m_recorder) {
             m_recorder->Stop();
         }
-
-        // The UI will be re-enabled by the thread when it finishes processing!
     }
 }

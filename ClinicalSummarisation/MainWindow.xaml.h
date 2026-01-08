@@ -6,6 +6,10 @@
 #include "AudioRecorder.h"
 #include "TranscriptionEngine.h"
 #include "AudioTranscriptionBridge.h"
+#include "SummarisationEngine.h"
+#include <future>
+#include <thread>
+#include <atomic>
 
 namespace winrt::ClinicalSummarisation::implementation
 {
@@ -17,15 +21,16 @@ namespace winrt::ClinicalSummarisation::implementation
         void stopRecording_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
 
     private:
-        // 1. The Bridge (The queue that connects them)
         AudioTranscriptionBridge m_bridge;
-
-        // 2. The Components (Pointers so we can delete/re-create them)
         AudioRecorder* m_recorder = nullptr;
         TranscriptionEngine* m_engine = nullptr;
+        SummarisationEngine* m_summariser = nullptr;
 
-        // 3. The Background Thread
         std::thread m_processingThread;
+
+        // track background LLM loading
+        std::future<void> m_summariserLoadFuture;
+        std::atomic<bool> m_isSummariserReady{ false };
     };
 }
 
