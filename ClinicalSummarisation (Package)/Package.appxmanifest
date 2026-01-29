@@ -9,8 +9,8 @@
 
   <Identity
     Name="4c4c3cf9-2e89-4dd7-878d-91fbb167520e"
-    Publisher="CN=Admin"
-    Version="1.0.0.0" />
+    Publisher="CN=Benjamin Alexander"
+    Version="1.0.2.0" />
 
   <mp:PhoneIdentity PhoneProductId="4c4c3cf9-2e89-4dd7-878d-91fbb167520e" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -47,7 +47,6 @@
 
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
-    <uap:Capability Name="musicLibrary"/>
     <DeviceCapability Name="microphone" />
   </Capabilities>
 </Package>

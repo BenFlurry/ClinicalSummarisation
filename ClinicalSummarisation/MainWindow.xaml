@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Window
     x:Class="ClinicalSummarisation.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -9,21 +8,78 @@
     mc:Ignorable="d"
     Title="ClinicalSummarisation">
 
-    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
+    <Grid Background="Transparent">
 
-        <TextBlock x:Name="StatusText" Text="Ready to Record" Style="{StaticResource SubtitleTextBlockStyle}"/>
+        <Button HorizontalAlignment="Right" 
+                VerticalAlignment="Top" 
+                Margin="15" 
+                Background="Transparent" 
+                BorderThickness="0">
+            <Button.Content>
+                <FontIcon Glyph="&#xE897;" FontFamily="Segoe MDL2 Assets"/>
+            </Button.Content>
 
-        <StackPanel Orientation="Horizontal" Spacing="20">
-            <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click"/>
-            <Button x:Name="stopRecording_btn" Content="Stop Recording" Click="stopRecording_Click" IsEnabled="False"/>
+            <Button.Flyout>
+                <Flyout>
+                    <StackPanel MaxWidth="300" Spacing="10">
+                        <TextBlock Text="Device Requirements" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                        <TextBlock TextWrapping="Wrap">
+                            This application can only be ran on an Intel AIPC with up-to-date drivers installed
+                        </TextBlock>
+                        <TextBlock Text="Instructions" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                        <TextBlock TextWrapping="Wrap">
+                            Click the "Start Recoding" and the application will listen to your conversation. Once completed, press "Stop Recording" to produce a summary and advice
+                        </TextBlock>
+                        <TextBlock Text="Credits" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                        <TextBlock TextWrapping="Wrap">
+                            This application was created as part of a final year IXN project with UCL in parternship with Intel as a proof of concept project for a clinical summarisation and medical advice application. 
+                            This application is completely offline and does not store data of any kind
+                            Powered by Intel OpenVINO and Llama3
+                        </TextBlock>
+                    </StackPanel>
+                </Flyout>
+            </Button.Flyout>
+        </Button>
+
+        <StackPanel Orientation="Vertical" 
+                    HorizontalAlignment="Center" 
+                    VerticalAlignment="Center" 
+                    Spacing="20">
+
+            <TextBlock x:Name="StatusText" Text="Application loading..." Style="{StaticResource SubtitleTextBlockStyle}" TextAlignment="Center"/>
+
+            <StackPanel x:Name="ControlButtons" Orientation="Horizontal" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Center">
+                <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click"/>
+                <Button x:Name="stopRecording_btn" Content="Stop Recording" Click="stopRecording_Click" IsEnabled="False"/>
+            </StackPanel>
+
+            <Button x:Name="copy_btn" 
+                Click="copyButton_Click"
+                HorizontalAlignment="Right" 
+                Visibility="Collapsed"
+                Padding="8,4,8,4"
+                MinHeight="0"
+                MinWidth="0">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <SymbolIcon Symbol="Copy" RenderTransformOrigin="0.5,0.5">
+                        <SymbolIcon.RenderTransform>
+                            <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
+                        </SymbolIcon.RenderTransform>
+                    </SymbolIcon>
+
+                    <TextBlock x:Name="CopyButtonText" Text="Copy to Clipboard"/>
+                </StackPanel>
+            </Button>
+
+            <TextBox x:Name="MyTextBox" 
+                     Width="600" 
+                     Height="300" 
+                     TextWrapping="Wrap" 
+                     AcceptsReturn="True" 
+                     PlaceholderText="Transcription will appear here..."
+                     Visibility="Collapsed"/>
+
+
         </StackPanel>
-
-        <TextBox x:Name="MyTextBox" 
-             Width="600" 
-             Height="300" 
-             TextWrapping="Wrap" 
-             AcceptsReturn="True" 
-             PlaceholderText="Transcription will appear here after you stop recording..."/>
-
-    </StackPanel>
+    </Grid>
 </Window>

@@ -33,7 +33,6 @@ std::string TranscriptionEngine::ProcessLoop() {
 
     while (m_isRunning) {
         AudioChunk audioChunk = m_bridge->Pop();
-        //m_fullTranscript << "\n[New Chunk]";
 
 		float max_amp = 0.0f;
 		for (float s : audioChunk.audioData) max_amp = std::max(max_amp, std::abs(s));
@@ -44,11 +43,6 @@ std::string TranscriptionEngine::ProcessLoop() {
 			for (float& s : audioChunk.audioData) s *= gain;
 		}
 
-		// padding
-		//size_t target_samples = 16000 * 30; 
-		//if (chunk.audioData.size() < target_samples) {
-		//    chunk.audioData.resize(target_samples, 0.0f);
-		//}
 
 		ov::genai::WhisperGenerationConfig config;
 		config.max_new_tokens = 100;
@@ -58,27 +52,23 @@ std::string TranscriptionEngine::ProcessLoop() {
 
 		auto result = m_pipeline->generate(audioChunk.audioData, config);
 		std::vector<float>& sourceAudio = audioChunk.audioData;
-		// Inside ProcessLoop... after Whisper returns 'result'
 
 		for (const auto& transcribedChunk : *result.chunks) {
 
-			// 1. Calculate Indices
 			// Whisper timestamps are in Seconds. Audio is 16000 Hz.
 			size_t startIdx = (size_t)(transcribedChunk.start_ts * 16000);
 			size_t endIdx = (size_t)(transcribedChunk.end_ts * 16000);
 
-			// Safety Bounds Check (Critical!)
 			if (startIdx >= sourceAudio.size()) startIdx = sourceAudio.size() - 1;
 			if (endIdx > sourceAudio.size()) endIdx = sourceAudio.size();
-			if (endIdx <= startIdx) continue; // Skip invalid clips
+			if (endIdx <= startIdx) continue; 
 
-			// 2. Extract Audio Clip
+			// Extract Audio Clip
 			std::vector<float> clip(sourceAudio.begin() + startIdx, sourceAudio.begin() + endIdx);
 
-			// 3. Get Embedding (Only if clip is long enough, e.g., > 0.5s)
 			std::string speakerLabel = "[Unknown]";
 
-			if (clip.size() > 8000) { // > 0.5 seconds
+			if (clip.size() > 8000) {
 
 				float sumSquares = 0.0f;
 				for (float sample : clip) {
@@ -87,12 +77,8 @@ std::string TranscriptionEngine::ProcessLoop() {
 
 				float rms = std::sqrt(sumSquares / clip.size());
 				
-				//m_fullTranscript << "RMS: " << std::to_string(rms) << "\n";
-
-
 				std::vector<float> currentEmbedding = m_speakerEncoder->GetEmbedding(clip);
 
-				// 4. Identify Speaker
 				if (m_doctorProfile.empty()) {
 					// First person to speak is assumed to be the Doctor
 					m_doctorProfile = currentEmbedding;
@@ -104,7 +90,7 @@ std::string TranscriptionEngine::ProcessLoop() {
 					std::string scoreStr = std::to_string(score).substr(0, 4); // "0.85"
 
 					// Threshold: usually 0.5 - 0.7 for ECAPA-TDNN
-					if (score > 0.725f) {
+					if (score > 0.8f) {
 						speakerLabel = "Doctor";
 					}
 					else {
@@ -113,7 +99,6 @@ std::string TranscriptionEngine::ProcessLoop() {
 				}
 			}
 
-			// 5. Output with Label
 			m_fullTranscript << "[" << speakerLabel << "] " << transcribedChunk.text << "\n";
 
 			if (audioChunk.isLastChunk) {
