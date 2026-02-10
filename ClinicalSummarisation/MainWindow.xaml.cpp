@@ -12,6 +12,9 @@
 #include <winrt/Windows.UI.h>
 #include <winrt/Windows.Devices.Enumeration.h>
 #include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.Storage.Pickers.h>
+#include <winrt/Windows.Storage.Provider.h>
+#include <shobjidl.h>
 
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
@@ -27,14 +30,13 @@ namespace winrt::ClinicalSummarisation::implementation
         // background
         SystemBackdrop(winrt::Microsoft::UI::Xaml::Media::MicaBackdrop());
 
-
         // window size
         auto windowNative{ this->try_as<::IWindowNative>() };
-        HWND hWnd{ 0 };
-        windowNative->get_WindowHandle(&hWnd);
+        winrt::check_hresult(windowNative->get_WindowHandle(&m_hWnd));
+        
 
         winrt::Microsoft::UI::WindowId windowId;
-        windowId.Value = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(hWnd));
+        windowId.Value = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(m_hWnd));
         winrt::Microsoft::UI::Windowing::AppWindow appWindow = winrt::Microsoft::UI::Windowing::AppWindow::GetFromWindowId(windowId);
 
         appWindow.Resize({ 1200,  800}); 
@@ -252,4 +254,65 @@ namespace winrt::ClinicalSummarisation::implementation
         }
 
     }
+
+    winrt::fire_and_forget MainWindow::saveTranscription_Click(IInspectable const&, RoutedEventArgs const&)
+    {
+        try
+        {
+            // 1. Create the FileSavePicker
+            winrt::Windows::Storage::Pickers::FileSavePicker savePicker;
+
+            // 2. IMPORTANT: Initialize it with your Window Handle (WinUI 3 Requirement)
+            // If you skip this, the app will crash or the dialog won't show.
+            auto initializeWithWindow = savePicker.as<::IInitializeWithWindow>();
+            initializeWithWindow->Initialize(m_hWnd);
+
+            // 3. Configure the Options
+            savePicker.SuggestedStartLocation(winrt::Windows::Storage::Pickers::PickerLocationId::DocumentsLibrary);
+            savePicker.FileTypeChoices().Insert(L"Text File", winrt::single_threaded_vector<winrt::hstring>({ L".txt" }));
+            // TODO
+            savePicker.SuggestedFileName(L"Consultation_Summary");
+
+            // 4. Show the Dialog and Wait for User Selection
+            winrt::Windows::Storage::StorageFile file = co_await savePicker.PickSaveFileAsync();
+
+            if (file)
+            {
+                // 5. User picked a file -> Write the content
+                // We get the text from the UI box
+                winrt::hstring content = MyTextBox().Text();
+
+                // Prevent empty file errors if box is empty
+                if (content.empty()) content = L"No transcription available.";
+
+                // Write to file asynchronously
+                co_await winrt::Windows::Storage::FileIO::WriteTextAsync(file, content);
+
+                // Optional: Update UI to say "Saved!"
+                StatusText().Text(L"File Saved Successfully");
+            }
+            else
+            {
+                StatusText().Text(L"Save Cancelled");
+            }
+        }
+        catch (winrt::hresult_error const& ex)
+        {
+            // 1. Catch Windows-specific errors (Permissions, File Locked, etc.)
+            // ex.message() returns a helpful localized string
+            StatusText().Text(L"Save Failed: " + ex.message());
+        }
+        catch (std::exception const& ex)
+        {
+            // 2. Catch Standard C++ errors
+            // Convert 'char*' to 'hstring'
+            StatusText().Text(L"Error: " + winrt::to_hstring(ex.what()));
+        }
+        catch (...)
+        {
+            // 3. Catch anything else
+            StatusText().Text(L"An unknown error occurred while saving.");
+        }
+    }
 }
+

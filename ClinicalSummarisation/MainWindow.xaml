@@ -134,6 +134,7 @@
             <StackPanel x:Name="ControlButtons" Orientation="Horizontal" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Center">
                 <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click"/>
                 <Button x:Name="stopRecording_btn" Content="Stop Recording" Click="stopRecording_Click" IsEnabled="False"/>
+                <Button x:Name="saveTranscript_btn" Content="Save Transcript" Click="saveTranscription_Click" IsEnabled="True"/>
             </StackPanel>
 
             <Button x:Name="copy_btn" 

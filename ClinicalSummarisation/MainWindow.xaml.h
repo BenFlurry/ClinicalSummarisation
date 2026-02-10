@@ -15,12 +15,16 @@ namespace winrt::ClinicalSummarisation::implementation
 {
     struct MainWindow : MainWindowT<MainWindow>
     {
+    public:
         MainWindow();
 
         void startRecording_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void stopRecording_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void copyButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
+        winrt::fire_and_forget saveTranscription_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         winrt::fire_and_forget loadMicrophones();
+
+        
 
     private:
         AudioTranscriptionBridge m_bridge;
@@ -33,6 +37,7 @@ namespace winrt::ClinicalSummarisation::implementation
         // track background LLM loading
         std::future<void> m_summariserLoadFuture;
         std::atomic<bool> m_isSummariserReady{ false };
+        HWND m_hWnd{ 0 };
     };
 }
 
