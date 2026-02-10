@@ -113,6 +113,12 @@ namespace winrt::ClinicalSummarisation::implementation
         startRecording_btn().IsEnabled(false);
         stopRecording_btn().IsEnabled(true);
         MyTextBox().Text(L"");
+        auto selectedMic = MicComboBox().SelectedItem();
+
+        winrt::hstring winrtMicName = winrt::unbox_value<winrt::hstring>(selectedMic);
+        std::string micName = winrt::to_string(winrtMicName);
+
+        m_recorder->SetMicrophoneName(micName);
 
         // FIX: Handle thread cleanup safely before starting a new one
         if (m_processingThread.joinable()) m_processingThread.join();

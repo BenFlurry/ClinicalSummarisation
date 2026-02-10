@@ -47,21 +47,70 @@ AudioRecorder::~AudioRecorder() {
     Stop();
 }
 
+void AudioRecorder::SetMicrophoneName(std::string microphoneName) {
+    m_microphoneName = microphoneName;
+}
+
 // 2. Start Recording
 void AudioRecorder::Start() {
     if (m_isRecording) return;
 
-    // Initialize the device
+    ma_context context;
+
+    if (ma_context_init(NULL, 0, NULL, &context) != MA_SUCCESS) {
+        return; // Failed to init context
+    }
+
+    // find microphone ID
+    ma_device_info* pPlaybackInfos;
+    ma_uint32 playbackCount;
+    ma_device_info* pCaptureInfos;
+    ma_uint32 captureCount;
+
+    // Get list of all microphones
+    ma_context_get_devices(&context, &pPlaybackInfos, &playbackCount, &pCaptureInfos, &captureCount);
+
+    // 2. FIND THE MATCHING DEVICE ID
+    ma_device_id* pSelectedDeviceID = NULL;
+
+    // Only look if we actually have a target name set
+    if (!m_microphoneName.empty()) {
+        for (ma_uint32 i = 0; i < captureCount; ++i) {
+            std::string currentName = pCaptureInfos[i].name;
+
+            // Check if names match (WinRT name == Miniaudio name)
+            if (currentName == m_microphoneName) {
+                pSelectedDeviceID = &pCaptureInfos[i].id;
+                break; // Found it!
+            }
+        }
+    }
+
+    // 3. CONFIGURE WITH SPECIFIC ID
+    // If pSelectedDeviceID is NULL, it defaults to the system default mic
+    m_config = ma_device_config_init(ma_device_type_capture);
+    m_config.capture.pDeviceID = pSelectedDeviceID; // <--- The Magic Link
+    m_config.capture.format = ma_format_f32;
+    m_config.capture.channels = 1;
+    m_config.sampleRate = 16000;
+    m_config.pUserData = this;
+    m_config.dataCallback = DataCallback;
+
+    // 4. INIT DEVICE
+    // Note: We use NULL for context here to let miniaudio manage its own internal context 
+    // for the device, passing the ID we found is safe on Windows/WASAPI.
     if (ma_device_init(NULL, &m_config, &m_device) != MA_SUCCESS) {
-        // Handle error (throw exception or log to output)
+        ma_context_uninit(&context); // Cleanup temp context
         return;
     }
 
-    // Clear buffer and reserve 30s of memory to avoid re-allocations during recording
+    // Cleanup the lookup context (we don't need it anymore)
+    ma_context_uninit(&context);
+
+    // 5. RUN
     m_currentBuffer.clear();
     m_currentBuffer.reserve(16000 * 30);
 
-    // Start the hardware
     if (ma_device_start(&m_device) != MA_SUCCESS) {
         ma_device_uninit(&m_device);
         return;

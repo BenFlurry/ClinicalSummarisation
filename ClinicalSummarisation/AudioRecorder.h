@@ -15,6 +15,7 @@ private:
 
     // The Lock
     std::mutex m_bufferMutex;
+    std::string m_microphoneName;
 
 public:
     AudioRecorder(AudioTranscriptionBridge* bridgePtr);
@@ -22,6 +23,7 @@ public:
     void Start();
     void Stop();
     static void DataCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
+    void SetMicrophoneName(std::string microphoneName);
 
 private:
     void Flush(bool isLast);
