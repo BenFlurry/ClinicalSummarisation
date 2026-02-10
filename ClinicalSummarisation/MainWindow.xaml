@@ -134,25 +134,27 @@
             <StackPanel x:Name="ControlButtons" Orientation="Horizontal" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Center">
                 <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click"/>
                 <Button x:Name="stopRecording_btn" Content="Stop Recording" Click="stopRecording_Click" IsEnabled="False"/>
-                <Button x:Name="saveTranscript_btn" Content="Save Transcript" Click="saveTranscription_Click" IsEnabled="True"/>
             </StackPanel>
 
-            <Button x:Name="copy_btn" 
-                    Click="copyButton_Click"
-                    HorizontalAlignment="Right" 
-                    Visibility="Collapsed"
-                    Padding="8,4,8,4"
-                    MinHeight="0"
-                    MinWidth="0">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <SymbolIcon Symbol="Copy" RenderTransformOrigin="0.5,0.5">
-                        <SymbolIcon.RenderTransform>
-                            <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
-                        </SymbolIcon.RenderTransform>
-                    </SymbolIcon>
-                    <TextBlock x:Name="CopyButtonText" Text="Copy to Clipboard"/>
-                </StackPanel>
-            </Button>
+            <StackPanel x:Name="PostSummarisationButtons" Orientation="Horizontal" Spacing="20" Visibility="Collapsed" HorizontalAlognment="Right">
+                <Button x:Name="saveTranscript_btn" Content="Save Transcript" Click="saveTranscription_Click" IsEnabled="True"/>
+                <Button x:Name="saveSummarisation_btn" Content="Save Summarisation" Click="saveSummarisation_Click" IsEnabled="True"/>
+                <Button x:Name="copy_btn" 
+                        Click="copyButton_Click"
+                        Visibility="Collapsed"
+                        Padding="8,4,8,4"
+                        MinHeight="0"
+                        MinWidth="0">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <SymbolIcon Symbol="Copy" RenderTransformOrigin="0.5,0.5">
+                            <SymbolIcon.RenderTransform>
+                                <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
+                            </SymbolIcon.RenderTransform>
+                        </SymbolIcon>
+                        <TextBlock x:Name="CopyButtonText" Text="Copy to Clipboard"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
 
             <TextBox x:Name="MyTextBox" 
                      Width="600" 

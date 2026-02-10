@@ -69,10 +69,7 @@ namespace winrt::ClinicalSummarisation::implementation
         titleBar.ButtonInactiveBackgroundColor(black);
         titleBar.ButtonInactiveForegroundColor(darkGray);
 
-        StatusText().Text(L"Loading Transcription Models");
-        StatusSpinner().Visibility(Visibility::Visible);
-        startRecording_btn().IsEnabled(false);
-        stopRecording_btn().IsEnabled(false);
+        MainWindow::SetAppState(AppState::Loading);
 
         m_summariser = new SummarisationEngine();
 
@@ -85,12 +82,7 @@ namespace winrt::ClinicalSummarisation::implementation
             m_engine->InitialiseModel();
 
             // 2. Enable UI immediately (User can record now)
-            this->DispatcherQueue().TryEnqueue([this]() {
-                StatusText().Text(L"Ready to Record");
-				StatusSpinner().Visibility(Visibility::Collapsed);
-                ControlButtons().Visibility(Visibility::Visible);
-                startRecording_btn().IsEnabled(true);
-                });
+            MainWindow::SetAppState(AppState::WaitingRecording);
 
             // 3. Start Loading the Heavy LLM (Med42) in parallel
             m_summariserLoadFuture = std::async(std::launch::async, [this]() {
@@ -108,13 +100,7 @@ namespace winrt::ClinicalSummarisation::implementation
 
     void MainWindow::startRecording_Click(IInspectable const&, RoutedEventArgs const&)
     {
-        StatusText().Text(L"Listening to Conversation..."); 
-        StatusSpinner().Visibility(Visibility::Collapsed);
-        MyTextBox().Visibility(Visibility::Collapsed); 
-        copy_btn().Visibility(Visibility::Collapsed); 
-        startRecording_btn().IsEnabled(false);
-        stopRecording_btn().IsEnabled(true);
-        MyTextBox().Text(L"");
+        MainWindow::SetAppState(AppState::Recording);
         auto selectedMic = MicComboBox().SelectedItem();
 
         winrt::hstring winrtMicName = winrt::unbox_value<winrt::hstring>(selectedMic);
@@ -148,29 +134,15 @@ namespace winrt::ClinicalSummarisation::implementation
 
             }
             catch (...) {
+                MainWindow::SetAppState(AppState::IncompatibleDevice);
                 success = false;
-
-                this->DispatcherQueue().TryEnqueue([this]() {
-                StatusText().Text(L"This device is not compatible with Intel's machine learning framework");
-                StatusSpinner().Visibility(Visibility::Collapsed);
-                ControlButtons().Visibility(Visibility::Collapsed);
-                MyTextBox().Visibility(Visibility::Collapsed);
-                copy_btn().Visibility(Visibility::Collapsed);
-                startRecording_btn().IsEnabled(false);
-                stopRecording_btn().IsEnabled(false);
-                    });
             }
 
             if (success) {
+                MainWindow::SetAppState(AppState::SummarisationComplete);
                 this->DispatcherQueue().TryEnqueue([this, soapNote, finalTranscript]() {
                     std::string fullOutput = soapNote;
                     MyTextBox().Text(to_hstring(fullOutput));
-                    MyTextBox().Visibility(Visibility::Visible);
-                    copy_btn().Visibility(Visibility::Visible);
-                    StatusText().Text(L"Clinical Summarisation");
-                    StatusSpinner().Visibility(Visibility::Collapsed);
-                    startRecording_btn().IsEnabled(true);
-                    stopRecording_btn().IsEnabled(false);
 				});
             }
 		});
@@ -184,10 +156,7 @@ namespace winrt::ClinicalSummarisation::implementation
     }
     void MainWindow::stopRecording_Click(IInspectable const&, RoutedEventArgs const&)
     {
-        StatusText().Text(L"Generating Summarisation");
-        StatusSpinner().Visibility(Visibility::Visible);
-        startRecording_btn().IsEnabled(false);
-        stopRecording_btn().IsEnabled(false);
+        MainWindow::SetAppState(AppState::GeneratingSummarisation);
 
         // 1. Stop the Recorder
         // This triggers the 'Flush' logic we wrote -> sends 'isLastChunk=true'
@@ -255,6 +224,8 @@ namespace winrt::ClinicalSummarisation::implementation
 
     }
 
+
+
     winrt::fire_and_forget MainWindow::saveTranscription_Click(IInspectable const&, RoutedEventArgs const&)
     {
         try
@@ -313,6 +284,57 @@ namespace winrt::ClinicalSummarisation::implementation
             // 3. Catch anything else
             StatusText().Text(L"An unknown error occurred while saving.");
         }
+    }
+
+    void MainWindow::SetAppState(AppState state) {
+        this->DispatcherQueue().TryEnqueue([this, state]() {
+            StatusSpinner().Visibility(Visibility::Collapsed);
+            ControlButtons().Visibility(Visibility::Collapsed);
+            MyTextBox().Visibility(Visibility::Collapsed);
+            copy_btn().Visibility(Visibility::Collapsed);
+
+            startRecording_btn().IsEnabled(false);
+            stopRecording_btn().IsEnabled(false);
+
+            switch (state) {
+            case AppState::Loading:
+                StatusText().Text(L"Loading Application");
+				StatusSpinner().Visibility(Visibility::Visible);
+                break;
+
+            case AppState::WaitingRecording:
+                StatusText().Text(L"Ready to Record");
+                ControlButtons().Visibility(Visibility::Visible);
+                startRecording_btn().IsEnabled(true);
+                break;
+
+            case AppState::Recording:
+                StatusText().Text(L"Listening to Conversation");
+				StatusSpinner().Visibility(Visibility::Visible);
+                ControlButtons().Visibility(Visibility::Visible);
+				stopRecording_btn().IsEnabled(true);
+                break;
+
+            case AppState::IncompatibleDevice:
+                StatusText().Text(L"This device is not compatible with Intel's machine learning framework");
+                break;
+
+            case AppState::GeneratingSummarisation:
+                StatusText().Text(L"Generating Summarisation");
+				StatusSpinner().Visibility(Visibility::Visible);
+				startRecording_btn().IsEnabled(false);
+				stopRecording_btn().IsEnabled(false);
+                break;
+
+            case AppState::SummarisationComplete:
+                StatusText().Text(L"Clinical Summarisation");
+				MyTextBox().Visibility(Visibility::Visible);
+				copy_btn().Visibility(Visibility::Visible);
+				saveTranscript_btn().Visibility(Visibility::Visible);
+				startRecording_btn().IsEnabled(true);
+                break;
+            }
+            });
     }
 }
 

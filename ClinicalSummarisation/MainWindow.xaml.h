@@ -13,6 +13,16 @@
 
 namespace winrt::ClinicalSummarisation::implementation
 {
+    enum class AppState {
+        Loading,
+        WaitingRecording,
+        Recording,
+        IncompatibleDevice,
+        GeneratingSummarisation,
+        SummarisationComplete,
+        History
+    };
+
     struct MainWindow : MainWindowT<MainWindow>
     {
     public:
@@ -27,6 +37,8 @@ namespace winrt::ClinicalSummarisation::implementation
         
 
     private:
+        void SetAppState(AppState state);
+
         AudioTranscriptionBridge m_bridge;
         AudioRecorder* m_recorder = nullptr;
         TranscriptionEngine* m_engine = nullptr;
