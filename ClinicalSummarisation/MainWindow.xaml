@@ -10,43 +10,126 @@
 
     <Grid Background="Transparent">
 
-        <Button HorizontalAlignment="Right" 
-                VerticalAlignment="Top" 
-                Margin="15" 
-                Background="Transparent" 
-                BorderThickness="0">
-            <Button.Content>
-                <FontIcon Glyph="&#xE897;" FontFamily="Segoe MDL2 Assets"/>
-            </Button.Content>
+        <StackPanel Orientation="Horizontal" 
+                    HorizontalAlignment="Left" 
+                    VerticalAlignment="Top" 
+                    Margin="20,20,0,0">
+            <Button Width="40" Height="40" 
+                    Background="Transparent" 
+                    BorderThickness="0" 
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    ToolTipService.ToolTip="Settings">
 
-            <Button.Flyout>
-                <Flyout>
-                    <StackPanel MaxWidth="300" Spacing="10">
-                        <TextBlock Text="Device Requirements" Style="{StaticResource SubtitleTextBlockStyle}"/>
-                        <TextBlock TextWrapping="Wrap">
-                            This application can only be ran on an Intel AIPC with up-to-date drivers installed
-                        </TextBlock>
-                        <TextBlock Text="Instructions" Style="{StaticResource SubtitleTextBlockStyle}"/>
-                        <TextBlock TextWrapping="Wrap">
-                            Click the "Start Recoding" and the application will listen to your conversation. Once completed, press "Stop Recording" to produce a summary and advice
-                        </TextBlock>
-                        <TextBlock Text="Credits" Style="{StaticResource SubtitleTextBlockStyle}"/>
-                        <TextBlock TextWrapping="Wrap">
-                            This application was created as part of a final year IXN project with UCL in parternship with Intel as a proof of concept project for a clinical summarisation and medical advice application. 
-                            This application is completely offline and does not store data of any kind
-                            Powered by Intel OpenVINO and Llama3
-                        </TextBlock>
-                    </StackPanel>
-                </Flyout>
-            </Button.Flyout>
-        </Button>
+                <SymbolIcon Symbol="Setting"/>
+
+                <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedLeft">
+                        <StackPanel Width="280" Spacing="16">
+                            <TextBlock Text="Settings" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Microphone Input" FontWeight="SemiBold"/>
+                                <ComboBox SelectedIndex="0" HorizontalAlignment="Stretch" Name="MicComboBox">
+
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Appearance" FontWeight="SemiBold"/>
+                                <ToggleSwitch Header="Dark Mode" IsOn="True"/>
+                            </StackPanel>
+
+                            <MenuFlyoutSeparator/>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="AI Model Configuration" FontWeight="SemiBold"/>
+                                <TextBlock Text="Whisper: Quantized (Int8)" Foreground="Gray" FontSize="12"/>
+                                <TextBlock Text="Med42: 4-bit (OpenVINO)" Foreground="Gray" FontSize="12"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Top" 
+                    Margin="0,20,20,0" 
+                    Spacing="10">
+            <Button Width="40" Height="40" 
+                    Background="Transparent" 
+                    ToolTipService.ToolTip="Information"
+                    BorderThickness="0">
+
+                <FontIcon Glyph="&#xE946;" FontSize="18"/>
+
+                <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedRight">
+                        <StackPanel MaxWidth="300" Spacing="5" >
+                            <TextBlock Text="Disclaimer" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                            <TextBlock TextWrapping="Wrap">
+                                This application was created as part of a final year project with UCL in partnership with Intel as a proof of concept project for a clinical summarisation and medical advice application.
+                            </TextBlock>
+                            <TextBlock TextWrapping="Wrap">
+                                This application is completely offline and does not store data of any kind.
+                            </TextBlock>
+                            <TextBlock TextWrapping="Wrap">
+                                Powered by Intel OpenVINO and Llama3.
+                            </TextBlock>
+                        </StackPanel>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
+
+            <Button Width="40" Height="40" 
+                    Background="Transparent" 
+                    BorderThickness="0">
+                <Button.Content>
+                    <FontIcon Glyph="&#xE897;" FontFamily="Segoe MDL2 Assets"/>
+                </Button.Content>
+
+                <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedRight">
+                        <StackPanel MaxWidth="300" Spacing="10">
+                            <TextBlock Text="Device Requirements" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                            <TextBlock TextWrapping="Wrap">
+                                This application can be ran exclusively on an Intel AIPC with minimum 32GB RAM and up-to-date drivers installed.
+                            </TextBlock>
+                            <TextBlock Text="Instructions" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                            <TextBlock TextWrapping="Wrap">
+                                1. Click "Start Recording" to listen to your conversation.
+                            </TextBlock>
+                            <TextBlock TextWrapping="Wrap">
+                                2. Click "Stop Recording" to produce a summary and advice.
+                            </TextBlock>
+                            <TextBlock TextWrapping="Wrap">
+                                3. Click "Copy to Clipboard" to export the result.
+                            </TextBlock>
+                        </StackPanel>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
+
+        </StackPanel>
 
         <StackPanel Orientation="Vertical" 
                     HorizontalAlignment="Center" 
                     VerticalAlignment="Center" 
                     Spacing="20">
 
-            <TextBlock x:Name="StatusText" Text="Application loading..." Style="{StaticResource SubtitleTextBlockStyle}" TextAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                <TextBlock x:Name="StatusText" 
+                           Text="Application loading..." 
+                           Style="{StaticResource SubtitleTextBlockStyle}" 
+                           TextAlignment="Center"/>
+                <ProgressRing x:Name="StatusSpinner" 
+                              IsActive="True" 
+                              Width="20" 
+                              Height="20" 
+                              Visibility="Collapsed"/>
+            </StackPanel>
 
             <StackPanel x:Name="ControlButtons" Orientation="Horizontal" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Center">
                 <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click"/>
@@ -54,19 +137,18 @@
             </StackPanel>
 
             <Button x:Name="copy_btn" 
-                Click="copyButton_Click"
-                HorizontalAlignment="Right" 
-                Visibility="Collapsed"
-                Padding="8,4,8,4"
-                MinHeight="0"
-                MinWidth="0">
+                    Click="copyButton_Click"
+                    HorizontalAlignment="Right" 
+                    Visibility="Collapsed"
+                    Padding="8,4,8,4"
+                    MinHeight="0"
+                    MinWidth="0">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <SymbolIcon Symbol="Copy" RenderTransformOrigin="0.5,0.5">
                         <SymbolIcon.RenderTransform>
                             <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
                         </SymbolIcon.RenderTransform>
                     </SymbolIcon>
-
                     <TextBlock x:Name="CopyButtonText" Text="Copy to Clipboard"/>
                 </StackPanel>
             </Button>
@@ -78,8 +160,7 @@
                      AcceptsReturn="True" 
                      PlaceholderText="Transcription will appear here..."
                      Visibility="Collapsed"/>
-
-
         </StackPanel>
+
     </Grid>
 </Window>

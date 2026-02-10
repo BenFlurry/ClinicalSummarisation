@@ -38,7 +38,6 @@ std::string SummarisationEngine::generateTranscription(std::string transcript) {
     config.temperature = 0.2f;    // Low temperature = More factual/consistent
 
     ov::genai::DecodedResults res = m_model->generate(fullPrompt, config);
-    //throw 404;
 
     return res.texts[0];
 }

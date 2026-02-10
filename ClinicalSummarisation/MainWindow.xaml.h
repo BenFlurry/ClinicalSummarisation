@@ -20,6 +20,7 @@ namespace winrt::ClinicalSummarisation::implementation
         void startRecording_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void stopRecording_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void copyButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
+        winrt::fire_and_forget loadMicrophones();
 
     private:
         AudioTranscriptionBridge m_bridge;

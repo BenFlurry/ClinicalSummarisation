@@ -10,6 +10,8 @@
 #include <winrt/Windows.ApplicationModel.DataTransfer.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Windows.UI.h>
+#include <winrt/Windows.Devices.Enumeration.h>
+#include <winrt/Windows.Foundation.Collections.h>
 
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
@@ -19,6 +21,9 @@ namespace winrt::ClinicalSummarisation::implementation
     MainWindow::MainWindow()
     {
         InitializeComponent();
+        // load available mics
+        MainWindow::loadMicrophones();
+
         // background
         SystemBackdrop(winrt::Microsoft::UI::Xaml::Media::MicaBackdrop());
 
@@ -63,6 +68,7 @@ namespace winrt::ClinicalSummarisation::implementation
         titleBar.ButtonInactiveForegroundColor(darkGray);
 
         StatusText().Text(L"Loading Transcription Models");
+        StatusSpinner().Visibility(Visibility::Visible);
         startRecording_btn().IsEnabled(false);
         stopRecording_btn().IsEnabled(false);
 
@@ -79,6 +85,7 @@ namespace winrt::ClinicalSummarisation::implementation
             // 2. Enable UI immediately (User can record now)
             this->DispatcherQueue().TryEnqueue([this]() {
                 StatusText().Text(L"Ready to Record");
+				StatusSpinner().Visibility(Visibility::Collapsed);
                 ControlButtons().Visibility(Visibility::Visible);
                 startRecording_btn().IsEnabled(true);
                 });
@@ -99,7 +106,8 @@ namespace winrt::ClinicalSummarisation::implementation
 
     void MainWindow::startRecording_Click(IInspectable const&, RoutedEventArgs const&)
     {
-        StatusText().Text(L"Listening to Conversation"); 
+        StatusText().Text(L"Listening to Conversation..."); 
+        StatusSpinner().Visibility(Visibility::Collapsed);
         MyTextBox().Visibility(Visibility::Collapsed); 
         copy_btn().Visibility(Visibility::Collapsed); 
         startRecording_btn().IsEnabled(false);
@@ -119,6 +127,7 @@ namespace winrt::ClinicalSummarisation::implementation
             if (!m_isSummariserReady) {
                 this->DispatcherQueue().TryEnqueue([this]() {
                     StatusText().Text(L"Loading Summariser");
+					StatusSpinner().Visibility(Visibility::Visible);
                     });
                 // Wait for the background loader to finish
                 if (m_summariserLoadFuture.valid()) m_summariserLoadFuture.wait();
@@ -135,6 +144,7 @@ namespace winrt::ClinicalSummarisation::implementation
 
                 this->DispatcherQueue().TryEnqueue([this]() {
                 StatusText().Text(L"This device is not compatible with Intel's machine learning framework");
+                StatusSpinner().Visibility(Visibility::Collapsed);
                 ControlButtons().Visibility(Visibility::Collapsed);
                 MyTextBox().Visibility(Visibility::Collapsed);
                 copy_btn().Visibility(Visibility::Collapsed);
@@ -149,7 +159,8 @@ namespace winrt::ClinicalSummarisation::implementation
                     MyTextBox().Text(to_hstring(fullOutput));
                     MyTextBox().Visibility(Visibility::Visible);
                     copy_btn().Visibility(Visibility::Visible);
-                    StatusText().Text(L"Process Complete");
+                    StatusText().Text(L"Clinical Summarisation");
+                    StatusSpinner().Visibility(Visibility::Collapsed);
                     startRecording_btn().IsEnabled(true);
                     stopRecording_btn().IsEnabled(false);
 				});
@@ -166,6 +177,7 @@ namespace winrt::ClinicalSummarisation::implementation
     void MainWindow::stopRecording_Click(IInspectable const&, RoutedEventArgs const&)
     {
         StatusText().Text(L"Generating Summarisation");
+        StatusSpinner().Visibility(Visibility::Visible);
         startRecording_btn().IsEnabled(false);
         stopRecording_btn().IsEnabled(false);
 
@@ -202,5 +214,36 @@ namespace winrt::ClinicalSummarisation::implementation
                 });
 
             }).detach();
+    }
+
+    winrt::fire_and_forget MainWindow::loadMicrophones() {
+        auto devices = co_await winrt::Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(
+            winrt::Windows::Devices::Enumeration::DeviceClass::AudioCapture
+        );
+
+        // 2. Switch back to the UI thread to update the ComboBox
+        // (The 'co_await' automatically puts us back on the thread we started from)
+
+        // Clear existing items
+        MicComboBox().Items().Clear();
+
+        if (devices.Size() == 0)
+        {
+            // Add a placeholder if nothing found
+            MicComboBox().Items().Append(winrt::box_value(L"No microphones found"));
+        }
+        else
+        {
+            // 3. Loop through the collection
+            for (auto const& device : devices)
+            {
+                // Create the ComboBoxItem content (The microphone name)
+                MicComboBox().Items().Append(winrt::box_value(device.Name()));
+            }
+
+            // Select the first microphone by default
+            MicComboBox().SelectedIndex(0);
+        }
+
     }
 }
