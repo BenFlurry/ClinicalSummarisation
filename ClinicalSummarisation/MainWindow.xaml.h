@@ -2,11 +2,11 @@
 
 #include "MainWindow.g.h"
 
-// Include your custom classes
 #include "AudioRecorder.h"
 #include "TranscriptionEngine.h"
 #include "AudioTranscriptionBridge.h"
 #include "SummarisationEngine.h"
+#include "DoctorEmbedding.h"
 #include <future>
 #include <thread>
 #include <atomic>
@@ -15,6 +15,7 @@ namespace winrt::ClinicalSummarisation::implementation
 {
     enum class AppState {
         Loading,
+        EnrollingVoice,
         WaitingRecording,
         Recording,
         IncompatibleDevice,
@@ -31,7 +32,11 @@ namespace winrt::ClinicalSummarisation::implementation
         void startRecording_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void stopRecording_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void copyButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
+        void enrollVoice_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
+        void finishEnrollment_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
+        void cancelEnrollment_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         winrt::fire_and_forget saveTranscription_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
+        winrt::fire_and_forget saveSummarisation_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         winrt::fire_and_forget loadMicrophones();
 
         
@@ -43,6 +48,7 @@ namespace winrt::ClinicalSummarisation::implementation
         AudioRecorder* m_recorder = nullptr;
         TranscriptionEngine* m_engine = nullptr;
         SummarisationEngine* m_summariser = nullptr;
+        DoctorEmbedding m_doctorEmbedding;
 
         std::thread m_processingThread;
 
@@ -50,6 +56,13 @@ namespace winrt::ClinicalSummarisation::implementation
         std::future<void> m_summariserLoadFuture;
         std::atomic<bool> m_isSummariserReady{ false };
         HWND m_hWnd{ 0 };
+        
+        std::string m_summarisation;
+        std::string m_transcription;
+
+
+    public:
+        void saveSummarisation_btn_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e);
     };
 }
 

@@ -15,6 +15,9 @@
 #include <winrt/Windows.Storage.Pickers.h>
 #include <winrt/Windows.Storage.Provider.h>
 #include <shobjidl.h>
+#include <iomanip>
+#include <sstream>
+#include <ctime>
 
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
@@ -33,13 +36,13 @@ namespace winrt::ClinicalSummarisation::implementation
         // window size
         auto windowNative{ this->try_as<::IWindowNative>() };
         winrt::check_hresult(windowNative->get_WindowHandle(&m_hWnd));
-        
+
 
         winrt::Microsoft::UI::WindowId windowId;
         windowId.Value = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(m_hWnd));
         winrt::Microsoft::UI::Windowing::AppWindow appWindow = winrt::Microsoft::UI::Windowing::AppWindow::GetFromWindowId(windowId);
 
-        appWindow.Resize({ 1200,  800}); 
+        appWindow.Resize({ 1200,  800 });
 
         // window title bar
         auto black = winrt::Windows::UI::ColorHelper::FromArgb(255, 0, 0, 0);
@@ -111,6 +114,9 @@ namespace winrt::ClinicalSummarisation::implementation
         // FIX: Handle thread cleanup safely before starting a new one
         if (m_processingThread.joinable()) m_processingThread.join();
 
+        std::vector<float> doctorProfile = m_doctorEmbedding.getSpeachEmbedding();
+        m_engine->SetDoctorProfile(doctorProfile);
+
         // 1. Start the Consumer (Processing Thread)
         m_processingThread = std::thread([this]() {
 
@@ -121,7 +127,7 @@ namespace winrt::ClinicalSummarisation::implementation
             if (!m_isSummariserReady) {
                 this->DispatcherQueue().TryEnqueue([this]() {
                     StatusText().Text(L"Loading Summariser");
-					StatusSpinner().Visibility(Visibility::Visible);
+                    StatusSpinner().Visibility(Visibility::Visible);
                     });
                 // Wait for the background loader to finish
                 if (m_summariserLoadFuture.valid()) m_summariserLoadFuture.wait();
@@ -141,11 +147,14 @@ namespace winrt::ClinicalSummarisation::implementation
             if (success) {
                 MainWindow::SetAppState(AppState::SummarisationComplete);
                 this->DispatcherQueue().TryEnqueue([this, soapNote, finalTranscript]() {
+                    m_summarisation = soapNote;
+                    m_transcription = finalTranscript;
+
                     std::string fullOutput = soapNote;
                     MyTextBox().Text(to_hstring(fullOutput));
-				});
+                    });
             }
-		});
+            });
 
         // FIX: Do NOT detach inside the thread. Detach here.
         m_processingThread.detach();
@@ -177,7 +186,7 @@ namespace winrt::ClinicalSummarisation::implementation
         winrt::Windows::ApplicationModel::DataTransfer::Clipboard::SetContent(package);
 
         // (Optional) Change button text temporarily to show success
-	    CopyButtonText().Text(L"Copied");
+        CopyButtonText().Text(L"Copied");
 
         std::thread([this]() {
 
@@ -226,10 +235,22 @@ namespace winrt::ClinicalSummarisation::implementation
 
 
 
-    winrt::fire_and_forget MainWindow::saveTranscription_Click(IInspectable const&, RoutedEventArgs const&)
+    winrt::fire_and_forget MainWindow::saveSummarisation_Click(IInspectable const&, RoutedEventArgs const&)
     {
         try
         {
+            auto now = std::chrono::system_clock::now();
+            std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+            std::tm now_tm;
+
+            // 2. Convert to local time safely (Windows requires localtime_s)
+            localtime_s(&now_tm, &now_c);
+
+            // 3. Format the string (YYYY-MM-DD-Summary-)
+            std::wstringstream wss;
+            wss << std::put_time(&now_tm, L"%Y-%m-%d-Summary-");
+
+            // 4. Set the suggested file name
             // 1. Create the FileSavePicker
             winrt::Windows::Storage::Pickers::FileSavePicker savePicker;
 
@@ -242,7 +263,7 @@ namespace winrt::ClinicalSummarisation::implementation
             savePicker.SuggestedStartLocation(winrt::Windows::Storage::Pickers::PickerLocationId::DocumentsLibrary);
             savePicker.FileTypeChoices().Insert(L"Text File", winrt::single_threaded_vector<winrt::hstring>({ L".txt" }));
             // TODO
-            savePicker.SuggestedFileName(L"Consultation_Summary");
+            savePicker.SuggestedFileName(wss.str());
 
             // 4. Show the Dialog and Wait for User Selection
             winrt::Windows::Storage::StorageFile file = co_await savePicker.PickSaveFileAsync();
@@ -251,16 +272,15 @@ namespace winrt::ClinicalSummarisation::implementation
             {
                 // 5. User picked a file -> Write the content
                 // We get the text from the UI box
-                winrt::hstring content = MyTextBox().Text();
+                winrt::hstring content = winrt::to_hstring(m_summarisation);
 
                 // Prevent empty file errors if box is empty
-                if (content.empty()) content = L"No transcription available.";
+                if (content.empty()) content = L"No summarisation available.";
 
                 // Write to file asynchronously
                 co_await winrt::Windows::Storage::FileIO::WriteTextAsync(file, content);
 
                 // Optional: Update UI to say "Saved!"
-                StatusText().Text(L"File Saved Successfully");
             }
             else
             {
@@ -286,10 +306,123 @@ namespace winrt::ClinicalSummarisation::implementation
         }
     }
 
+    winrt::fire_and_forget MainWindow::saveTranscription_Click(IInspectable const&, RoutedEventArgs const&)
+    {
+        try
+        {
+            auto now = std::chrono::system_clock::now();
+            std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+            std::tm now_tm;
+
+            // 2. Convert to local time safely (Windows requires localtime_s)
+            localtime_s(&now_tm, &now_c);
+
+            // 3. Format the string (YYYY-MM-DD-Summary-)
+            std::wstringstream wss;
+            wss << std::put_time(&now_tm, L"%Y-%m-%d-Transcript-");
+
+            // 4. Set the suggested file name
+            // 1. Create the FileSavePicker
+            winrt::Windows::Storage::Pickers::FileSavePicker savePicker;
+
+            // 2. IMPORTANT: Initialize it with your Window Handle (WinUI 3 Requirement)
+            // If you skip this, the app will crash or the dialog won't show.
+            auto initializeWithWindow = savePicker.as<::IInitializeWithWindow>();
+            initializeWithWindow->Initialize(m_hWnd);
+
+            // 3. Configure the Options
+            savePicker.SuggestedStartLocation(winrt::Windows::Storage::Pickers::PickerLocationId::DocumentsLibrary);
+            savePicker.FileTypeChoices().Insert(L"Text File", winrt::single_threaded_vector<winrt::hstring>({ L".txt" }));
+            // TODO
+            savePicker.SuggestedFileName(wss.str());
+
+            // 4. Show the Dialog and Wait for User Selection
+            winrt::Windows::Storage::StorageFile file = co_await savePicker.PickSaveFileAsync();
+
+            if (file)
+            {
+                // 5. User picked a file -> Write the content
+                // We get the text from the UI box
+                winrt::hstring content = winrt::to_hstring(m_transcription);
+
+                // Prevent empty file errors if box is empty
+                if (content.empty()) content = L"No transcription available.";
+
+                // Write to file asynchronously
+                co_await winrt::Windows::Storage::FileIO::WriteTextAsync(file, content);
+
+                // Optional: Update UI to say "Saved!"
+            }
+            else
+            {
+                StatusText().Text(L"Save Cancelled");
+            }
+        }
+        catch (winrt::hresult_error const& ex)
+        {
+            // 1. Catch Windows-specific errors (Permissions, File Locked, etc.)
+            // ex.message() returns a helpful localized string
+            StatusText().Text(L"Save Failed: " + ex.message());
+        }
+        catch (std::exception const& ex)
+        {
+            // 2. Catch Standard C++ errors
+            // Convert 'char*' to 'hstring'
+            StatusText().Text(L"Error: " + winrt::to_hstring(ex.what()));
+        }
+        catch (...)
+        {
+            // 3. Catch anything else
+            StatusText().Text(L"An unknown error occurred while saving.");
+        }
+    }
+
+    void MainWindow::enrollVoice_Click(IInspectable const&, RoutedEventArgs const&)
+    {
+        // 1. Change UI state to show the reading prompt
+        MainWindow::SetAppState(AppState::EnrollingVoice);
+
+        // 2. Safety check: Ensure the AI models have finished loading
+        if (!m_engine || !m_engine->GetEncoder()) {
+            StatusText().Text(L"AI System is still loading. Please wait.");
+            return;
+        }
+
+        // 3. Start the 30-second background recording loop
+        m_doctorEmbedding.EnrollNewSpeakerAsync(m_engine->GetEncoder());
+    }
+
+    void MainWindow::finishEnrollment_Click(IInspectable const&, RoutedEventArgs const&)
+    {
+        // 1. Tell the background loop to stop recording and process the audio
+        m_doctorEmbedding.FinishEnrollmentEarly();
+
+        // 2. Return the UI to the ready state
+        MainWindow::SetAppState(AppState::WaitingRecording);
+        StatusText().Text(L"Voice Profile Saved Successfully.");
+
+        // Note: Because the saving happens on a background thread, we won't 
+        // immediately inject the profile into the engine here to avoid a race condition.
+        // We will load it right before the consultation starts instead.
+    }
+
+    void MainWindow::cancelEnrollment_Click(IInspectable const&, RoutedEventArgs const&)
+    {
+        // 1. Tell the background loop to abort and delete the audio
+        m_doctorEmbedding.CancelEnrollment();
+
+        // 2. Return the UI to the ready state
+        MainWindow::SetAppState(AppState::WaitingRecording);
+        StatusText().Text(L"Voice Enrollment Cancelled.");
+    }
+
     void MainWindow::SetAppState(AppState state) {
         this->DispatcherQueue().TryEnqueue([this, state]() {
             StatusSpinner().Visibility(Visibility::Collapsed);
             ControlButtons().Visibility(Visibility::Collapsed);
+            EnrollmentPanel().Visibility(Visibility::Collapsed);
+            enrollVoice_btn().IsEnabled(false);
+            PostSummarisationButtons ().Visibility(Visibility::Collapsed);
             MyTextBox().Visibility(Visibility::Collapsed);
             copy_btn().Visibility(Visibility::Collapsed);
 
@@ -302,8 +435,15 @@ namespace winrt::ClinicalSummarisation::implementation
 				StatusSpinner().Visibility(Visibility::Visible);
                 break;
 
+            case AppState::EnrollingVoice:
+                StatusText().Text(L"Recording Voice Profile...");
+                StatusSpinner().Visibility(Visibility::Visible);
+                EnrollmentPanel().Visibility(Visibility::Visible);
+                break;
+
             case AppState::WaitingRecording:
                 StatusText().Text(L"Ready to Record");
+                enrollVoice_btn().IsEnabled(true);
                 ControlButtons().Visibility(Visibility::Visible);
                 startRecording_btn().IsEnabled(true);
                 break;
@@ -328,6 +468,7 @@ namespace winrt::ClinicalSummarisation::implementation
 
             case AppState::SummarisationComplete:
                 StatusText().Text(L"Clinical Summarisation");
+				PostSummarisationButtons().Visibility(Visibility::Visible);
 				MyTextBox().Visibility(Visibility::Visible);
 				copy_btn().Visibility(Visibility::Visible);
 				saveTranscript_btn().Visibility(Visibility::Visible);
@@ -337,4 +478,5 @@ namespace winrt::ClinicalSummarisation::implementation
             });
     }
 }
+
 

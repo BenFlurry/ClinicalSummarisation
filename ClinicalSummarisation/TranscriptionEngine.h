@@ -8,6 +8,15 @@
 #include "SpeakerEncoder.h"
 
 class TranscriptionEngine {
+public:
+	TranscriptionEngine(AudioTranscriptionBridge* bridgePtr);
+	~TranscriptionEngine();
+
+	void InitialiseModel();
+	SpeakerEncoder* GetEncoder() { return m_speakerEncoder; }
+	std::string ProcessLoop();
+	void SetDoctorProfile(const std::vector<float>& profile) { m_doctorProfile = profile;  }
+
 private:
 	AudioTranscriptionBridge* m_bridge;
 	SpeakerEncoder* m_speakerEncoder;
@@ -17,12 +26,5 @@ private:
 	ov::genai::WhisperPipeline* m_pipeline = nullptr;
 	std::vector<float> m_doctorProfile;
 
-
-public:
-	TranscriptionEngine(AudioTranscriptionBridge* bridgePtr);
-	~TranscriptionEngine();
-
-	void InitialiseModel();
-	std::string ProcessLoop();
 };
 

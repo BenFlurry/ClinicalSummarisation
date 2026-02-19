@@ -20,6 +20,7 @@
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="SpeakerEncoder.cpp" />
     <ClCompile Include="SummarisationEngine.cpp" />
+    <ClCompile Include="DoctorEmbedding.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -33,6 +34,7 @@
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="SpeakerEncoder.h" />
     <ClInclude Include="SummarisationEngine.h" />
+    <ClInclude Include="DoctorEmbedding.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Assets">

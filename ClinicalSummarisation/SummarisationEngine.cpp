@@ -12,10 +12,10 @@ void SummarisationEngine::loadModel() {
 std::string SummarisationEngine::generateTranscription(std::string transcript) {
     std::string systemPrompt =
         "<|system|>\n"
-        "You are an expert Clinical Medical Scribe for the NHS in England. Your task is to document a formal History of Present Illness (HPI) based on the doctor-patient transcript.\n"
+        "You are an expert Clinical Medical Summariser for the NHS in England. Your task is to document a formal History of Present Illness (HPI) based on the doctor-patient transcript.\n"
         "Rules for Documentation:\n"
         "1. **Style**: Write in a formal, objective clinical style (Third Person). Do not tell a story.\n"
-        "2. **Attribution**: Frequently attribute facts to the patient (e.g., use 'The patient stated...', 'She reports...', 'Patient notes...').\n"
+        "2. **Attribution**: Attribute facts to the patient (e.g., use 'The patient stated...', 'She reports...', 'Patient notes...').\n"
         "3. **Detail**: Capture specific mechanisms of injury (e.g., 'mopping the floor'), specific dates (convert spoken dates to DD/MM/YYYY), and specific names of providers if mentioned.\n"
         "4. **Chronology**: Present the history chronologically, starting with the initial onset/injury.\n"
         "5. **Content**: Include onset, duration, character of pain, aggravating factors, prior treatments, and recent exacerbations.\n"
@@ -23,7 +23,9 @@ std::string SummarisationEngine::generateTranscription(std::string transcript) {
         "Output Requirements:\n"
         "- Correct minor grammar mistakes but keep medical facts exact.\n"
         "- Output ONLY the final clinical note text. Do not chat or add introductory text.\n"
+        "- Keep summarisation as breif as possible, ignore non-medical conversation, do not make assumptions on anything not explicitly mentioned in the transcript\n"
         "- Do not infer dates or activities not present in the text.\n";
+        "- Do not provide any guidance, only the summary.\n";
 
     std::string userPrompt =
         "<|user|>\n"

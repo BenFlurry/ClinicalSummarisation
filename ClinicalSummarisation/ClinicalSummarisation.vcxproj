@@ -131,6 +131,7 @@
     <ClInclude Include="AudioRecordingThread.h" />
     <ClInclude Include="AudioStructures.h" />
     <ClInclude Include="AudioTranscriptionBridge.h" />
+    <ClInclude Include="DoctorEmbedding.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="miniaudio.h" />
     <ClInclude Include="pch.h" />
@@ -152,6 +153,7 @@
     <ClCompile Include="AudioRecorder.cpp" />
     <ClCompile Include="AudioRecordingThread.cpp" />
     <ClCompile Include="AudioTranscriptionBridge.cpp" />
+    <ClCompile Include="DoctorEmbedding.cpp" />
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

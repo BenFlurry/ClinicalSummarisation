@@ -132,11 +132,27 @@
             </StackPanel>
 
             <StackPanel x:Name="ControlButtons" Orientation="Horizontal" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Center">
+                <Button x:Name="enrollVoice_btn" Content="Enroll Voice Detection" Click="enrollVoice_Click" />
                 <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click"/>
                 <Button x:Name="stopRecording_btn" Content="Stop Recording" Click="stopRecording_Click" IsEnabled="False"/>
             </StackPanel>
 
-            <StackPanel x:Name="PostSummarisationButtons" Orientation="Horizontal" Spacing="20" Visibility="Collapsed" HorizontalAlognment="Right">
+            <StackPanel x:Name="EnrollmentPanel" Orientation="Vertical" Spacing="15" Visibility="Collapsed" HorizontalAlignment="Center" MaxWidth="600">
+                <TextBlock Text="Please read the following text naturally at your normal speaking pace:" 
+               FontWeight="SemiBold" HorizontalAlignment="Center"/>
+
+                <Border Background="{ThemeResource SystemControlBackgroundAltMediumBrush}" Padding="15" CornerRadius="8">
+                    <TextBlock Text="&#x22;I am recording my voice profile for the clinical summarisation system. This will allow the application to recognize my voice and accurately separate it from the patient's voice during our consultation. I am speaking clearly and at a normal volume.&#x22;" 
+                   TextWrapping="Wrap" FontStyle="Italic" TextAlignment="Center" FontSize="16"/>
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+                    <Button x:Name="finishEnrollment_btn" Content="Finish" Click="finishEnrollment_Click" Style="{StaticResource AccentButtonStyle}"/>
+                    <Button x:Name="cancelEnrollment_btn" Content="Cancel" Click="cancelEnrollment_Click"/>
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel x:Name="PostSummarisationButtons" Orientation="Horizontal" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Right">
                 <Button x:Name="saveTranscript_btn" Content="Save Transcript" Click="saveTranscription_Click" IsEnabled="True"/>
                 <Button x:Name="saveSummarisation_btn" Content="Save Summarisation" Click="saveSummarisation_Click" IsEnabled="True"/>
                 <Button x:Name="copy_btn" 

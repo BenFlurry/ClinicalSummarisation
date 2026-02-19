@@ -29,8 +29,6 @@ std::string TranscriptionEngine::ProcessLoop() {
     m_fullTranscript.str("");
     m_isRunning = true;
 
-    m_fullTranscript << "[Start] ";
-
     while (m_isRunning) {
         AudioChunk audioChunk = m_bridge->Pop();
 

@@ -10,6 +10,7 @@ void SpeakerEncoder::Initialize(const std::string& modelPath, const std::string&
     is_loaded = false;
 	m_model = m_core.compile_model(modelPath, device);
 	m_request = m_model.create_infer_request();
+    is_loaded = true;
 }
 
 std::vector<float> SpeakerEncoder::GetEmbedding(const std::vector<float>& audioBuffer) {
