@@ -4,6 +4,7 @@
 #include <condition_variable>
 #include "AudioStructures.h"
 
+// bridge between audio recording and transcription as a queue
 class AudioTranscriptionBridge {
 public:
 	void Push(AudioChunk chunk);

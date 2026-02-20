@@ -51,22 +51,21 @@ namespace winrt::ClinicalSummarisation::implementation
 
         auto titleBar = appWindow.TitleBar();
         titleBar.BackgroundColor(black);
-        titleBar.ForegroundColor(white); // Text title color
+        titleBar.ForegroundColor(white); 
 
-        // Button Colors (Minimize, Maximize, Close)
+        // button colours
         titleBar.ButtonBackgroundColor(black);
         titleBar.ButtonForegroundColor(white);
 
-        // Button Hover State (When you mouse over them)
+        // button bover colours
         titleBar.ButtonHoverBackgroundColor(darkGray);
         titleBar.ButtonHoverForegroundColor(white);
 
-        // Button Pressed State (When you click down)
+        // button pressed colours
         titleBar.ButtonPressedBackgroundColor(white);
         titleBar.ButtonPressedForegroundColor(black);
 
-        // 3. Set "Inactive" colors (When you click a different app)
-        // It's good practice to make it slightly lighter so the user knows it's not focused
+        // inactive button colours
         titleBar.InactiveBackgroundColor(black);
         titleBar.InactiveForegroundColor(darkGray);
         titleBar.ButtonInactiveBackgroundColor(black);
@@ -76,60 +75,61 @@ namespace winrt::ClinicalSummarisation::implementation
 
         m_summariser = new SummarisationEngine();
 
-        // Use a detached thread for the initialization sequence
+        // thread to start loading transcription and recording classes
         std::thread initThread([this]() {
-
-            // 1. Load Critical Models (Whisper)
             m_recorder = new AudioRecorder(&m_bridge);
             m_engine = new TranscriptionEngine(&m_bridge);
             m_engine->InitialiseModel();
 
-            // 2. Enable UI immediately (User can record now)
+            // once loaded, we can allow the user to record
             MainWindow::SetAppState(AppState::WaitingRecording);
 
-            // 3. Start Loading the Heavy LLM (Med42) in parallel
+            // start loading the heavy med42 model in parallel
             m_summariserLoadFuture = std::async(std::launch::async, [this]() {
                 try {
-                    m_summariser->loadModel(); // <--- THIS WAS MISSING
-                    m_isSummariserReady = true; // <--- Set the flag
-
+                    m_summariser->loadModel(); 
+                    m_isSummariserReady = true; 
                 }
                 catch (...) {
+                    // device is incompatible if the model doesn't load
+                    MainWindow::SetAppState(AppState::IncompatibleDevice);
                 }
                 });
             });
         initThread.detach();
     }
 
+    // when the user presses start recording
     void MainWindow::startRecording_Click(IInspectable const&, RoutedEventArgs const&)
     {
         MainWindow::SetAppState(AppState::Recording);
-        auto selectedMic = MicComboBox().SelectedItem();
 
+        // get our selected mic and find its name
+        auto selectedMic = MicComboBox().SelectedItem();
         winrt::hstring winrtMicName = winrt::unbox_value<winrt::hstring>(selectedMic);
         std::string micName = winrt::to_string(winrtMicName);
 
         m_recorder->SetMicrophoneName(micName);
 
-        // FIX: Handle thread cleanup safely before starting a new one
+        // rejoin processing thread if available
         if (m_processingThread.joinable()) m_processingThread.join();
 
+        // get our doctors speach embedding
         std::vector<float> doctorProfile = m_doctorEmbedding.getSpeachEmbedding();
         m_engine->SetDoctorProfile(doctorProfile);
 
-        // 1. Start the Consumer (Processing Thread)
+        // start processing thread
         m_processingThread = std::thread([this]() {
-
-            // This blocks until recording stops
+            // this blocks until recording stops
             std::string finalTranscript = m_engine->ProcessLoop();
 
-            // --- Post-Processing ---
+            // once recording has completed if med42 hasnt loaded
             if (!m_isSummariserReady) {
                 this->DispatcherQueue().TryEnqueue([this]() {
                     StatusText().Text(L"Loading Summariser");
                     StatusSpinner().Visibility(Visibility::Visible);
                     });
-                // Wait for the background loader to finish
+                // wait for background loading of med42 to complete
                 if (m_summariserLoadFuture.valid()) m_summariserLoadFuture.wait();
             }
 
@@ -137,13 +137,14 @@ namespace winrt::ClinicalSummarisation::implementation
             bool success = true;
             try {
                 soapNote = m_summariser->generateTranscription(finalTranscript);
-
             }
             catch (...) {
+                // if trying to prompt the model fails then device isnt compatible
                 MainWindow::SetAppState(AppState::IncompatibleDevice);
                 success = false;
             }
 
+            // show summarisation
             if (success) {
                 MainWindow::SetAppState(AppState::SummarisationComplete);
                 this->DispatcherQueue().TryEnqueue([this, soapNote, finalTranscript]() {
@@ -156,45 +157,39 @@ namespace winrt::ClinicalSummarisation::implementation
             }
             });
 
-        // FIX: Do NOT detach inside the thread. Detach here.
+        // let processing run in parallel
         m_processingThread.detach();
 
-        // FIX: Start the Recorder HERE (Outside the thread)
-        // If you put this inside the thread, it never runs because ProcessLoop blocks first.
+        // start recording on current thread
         m_recorder->Start();
     }
+
+    // when user finishes recording conversation
     void MainWindow::stopRecording_Click(IInspectable const&, RoutedEventArgs const&)
     {
         MainWindow::SetAppState(AppState::GeneratingSummarisation);
 
-        // 1. Stop the Recorder
-        // This triggers the 'Flush' logic we wrote -> sends 'isLastChunk=true'
+        // stop recording, flushing the last chunk of audio data into the bridge
         if (m_recorder) {
             m_recorder->Stop();
         }
     }
 
+    // to copy summarisation to clipboard
     void MainWindow::copyButton_Click(IInspectable const&, RoutedEventArgs const&)
     {
-        // 1. Create a DataPackage (holds the content)
+        // create window data package and add text from the editable UI summary box
         winrt::Windows::ApplicationModel::DataTransfer::DataPackage package;
-
-        // 2. Put your text inside it
         package.SetText(MyTextBox().Text());
 
-        // 3. Send it to the Clipboard
+        // add to clip board
         winrt::Windows::ApplicationModel::DataTransfer::Clipboard::SetContent(package);
 
-        // (Optional) Change button text temporarily to show success
         CopyButtonText().Text(L"Copied");
 
+        // half a second show "copied" in place of "copy to clipboard"
         std::thread([this]() {
-
-            // Wait for 500 milliseconds
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-            // Jump back to the UI thread to reset the text
-            // (You cannot touch UI elements directly from a background thread)
             this->DispatcherQueue().TryEnqueue([this]() {
                 CopyButtonText().Text(L"Copy to Clipboard");
                 });
@@ -202,39 +197,29 @@ namespace winrt::ClinicalSummarisation::implementation
             }).detach();
     }
 
+    // get all possible microphones
     winrt::fire_and_forget MainWindow::loadMicrophones() {
         auto devices = co_await winrt::Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(
             winrt::Windows::Devices::Enumeration::DeviceClass::AudioCapture
         );
-
-        // 2. Switch back to the UI thread to update the ComboBox
-        // (The 'co_await' automatically puts us back on the thread we started from)
-
-        // Clear existing items
+        // clear existing items
         MicComboBox().Items().Clear();
 
-        if (devices.Size() == 0)
-        {
-            // Add a placeholder if nothing found
+        if (devices.Size() == 0) {
+            // placeholder if no mics available
             MicComboBox().Items().Append(winrt::box_value(L"No microphones found"));
         }
-        else
-        {
-            // 3. Loop through the collection
-            for (auto const& device : devices)
-            {
-                // Create the ComboBoxItem content (The microphone name)
+        else {
+            // add to UI all found mics
+            for (auto const& device : devices) {
                 MicComboBox().Items().Append(winrt::box_value(device.Name()));
             }
-
-            // Select the first microphone by default
             MicComboBox().SelectedIndex(0);
         }
 
     }
 
-
-
+    // save summarisation to text file
     winrt::fire_and_forget MainWindow::saveSummarisation_Click(IInspectable const&, RoutedEventArgs const&)
     {
         try
@@ -377,47 +362,44 @@ namespace winrt::ClinicalSummarisation::implementation
         }
     }
 
+    // start doctor voice print 
     void MainWindow::enrollVoice_Click(IInspectable const&, RoutedEventArgs const&)
     {
-        // 1. Change UI state to show the reading prompt
         MainWindow::SetAppState(AppState::EnrollingVoice);
 
-        // 2. Safety check: Ensure the AI models have finished loading
+        // check models have loaded
         if (!m_engine || !m_engine->GetEncoder()) {
-            StatusText().Text(L"AI System is still loading. Please wait.");
+            StatusText().Text(L"Models still loading...");
             return;
         }
 
-        // 3. Start the 30-second background recording loop
+        // start encoding loop
         m_doctorEmbedding.EnrollNewSpeakerAsync(m_engine->GetEncoder());
     }
 
+    // finish doctor voice print
     void MainWindow::finishEnrollment_Click(IInspectable const&, RoutedEventArgs const&)
     {
-        // 1. Tell the background loop to stop recording and process the audio
         m_doctorEmbedding.FinishEnrollmentEarly();
 
-        // 2. Return the UI to the ready state
         MainWindow::SetAppState(AppState::WaitingRecording);
         StatusText().Text(L"Voice Profile Saved Successfully.");
-
-        // Note: Because the saving happens on a background thread, we won't 
-        // immediately inject the profile into the engine here to avoid a race condition.
-        // We will load it right before the consultation starts instead.
+        // cant inject doctors profile into encoding engine yet as processing wouldnt have finished
     }
 
+    // cancel enrollment
     void MainWindow::cancelEnrollment_Click(IInspectable const&, RoutedEventArgs const&)
     {
-        // 1. Tell the background loop to abort and delete the audio
+        // abort
         m_doctorEmbedding.CancelEnrollment();
-
-        // 2. Return the UI to the ready state
         MainWindow::SetAppState(AppState::WaitingRecording);
         StatusText().Text(L"Voice Enrollment Cancelled.");
     }
 
+    // app state machine
     void MainWindow::SetAppState(AppState state) {
         this->DispatcherQueue().TryEnqueue([this, state]() {
+            // default back to nothing
             StatusSpinner().Visibility(Visibility::Collapsed);
             ControlButtons().Visibility(Visibility::Collapsed);
             EnrollmentPanel().Visibility(Visibility::Collapsed);
@@ -429,6 +411,7 @@ namespace winrt::ClinicalSummarisation::implementation
             startRecording_btn().IsEnabled(false);
             stopRecording_btn().IsEnabled(false);
 
+            // process each state and what should or shouldn't be shown
             switch (state) {
             case AppState::Loading:
                 StatusText().Text(L"Loading Application");
@@ -469,6 +452,7 @@ namespace winrt::ClinicalSummarisation::implementation
             case AppState::SummarisationComplete:
                 StatusText().Text(L"Clinical Summarisation");
 				PostSummarisationButtons().Visibility(Visibility::Visible);
+				ControlButtons().Visibility(Visibility::Visible);
 				MyTextBox().Visibility(Visibility::Visible);
 				copy_btn().Visibility(Visibility::Visible);
 				saveTranscript_btn().Visibility(Visibility::Visible);

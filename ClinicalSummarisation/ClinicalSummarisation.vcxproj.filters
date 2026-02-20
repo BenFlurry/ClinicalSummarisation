@@ -71,7 +71,6 @@
     <None Include="..\External\OpenVINO\runtime\3rdparty\tbb\bin\tbb12.dll" />
     <None Include="..\External\OpenVINO\runtime\3rdparty\tbb\bin\tbbbind_2_5.dll" />
     <None Include="..\External\OpenVINO\runtime\3rdparty\tbb\bin\tbbmalloc.dll" />
-    <None Include="..\External\OpenVINO\runtime\3rdparty\tbb\bin\tbbmalloc_proxy.dll" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="$(MSBuildThisFileDirectory)..\..\natvis\wil.natvis" />

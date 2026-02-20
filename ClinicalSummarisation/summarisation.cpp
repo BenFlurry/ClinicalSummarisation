@@ -1,3 +1,4 @@
+// NO LONGER IN USE
 #include "pch.h"
 #include "summarisation.hpp"
 #include <iostream>
@@ -5,7 +6,6 @@
 #include "openvino/genai/llm_pipeline.hpp"
 
 
-// REQUIRED: Helper libraries to find the app folder
 #include <winrt/Windows.ApplicationModel.h> 
 #include <winrt/Windows.Storage.h>
 

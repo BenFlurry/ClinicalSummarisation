@@ -29,6 +29,7 @@ namespace winrt::ClinicalSummarisation::implementation
     public:
         MainWindow();
 
+        // button handlers
         void startRecording_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void stopRecording_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void copyButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
@@ -55,17 +56,15 @@ namespace winrt::ClinicalSummarisation::implementation
         // track background LLM loading
         std::future<void> m_summariserLoadFuture;
         std::atomic<bool> m_isSummariserReady{ false };
+        // for window resizing
         HWND m_hWnd{ 0 };
         
         std::string m_summarisation;
         std::string m_transcription;
-
-
-    public:
-        void saveSummarisation_btn_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& e);
     };
 }
 
+// required for winui3
 namespace winrt::ClinicalSummarisation::factory_implementation
 {
     struct MainWindow : MainWindowT<MainWindow, implementation::MainWindow>

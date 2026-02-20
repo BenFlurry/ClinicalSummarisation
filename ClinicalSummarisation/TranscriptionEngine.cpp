@@ -3,6 +3,7 @@
 #include "Helpers.h"
 #include <iostream>
 
+// connect to bridge
 TranscriptionEngine::TranscriptionEngine(AudioTranscriptionBridge* bridgePtr) {
 	m_bridge = bridgePtr;
 	m_isRunning = false;
@@ -23,7 +24,7 @@ void TranscriptionEngine::InitialiseModel() {
 	m_pipeline = new ov::genai::WhisperPipeline(modelPath, "CPU");
 }
 
-
+// main running loop which takes in the audio chunk, transcribes and diarises
 std::string TranscriptionEngine::ProcessLoop() {
     // Clear previous text
     m_fullTranscript.str("");
@@ -53,7 +54,6 @@ std::string TranscriptionEngine::ProcessLoop() {
 
 		for (const auto& transcribedChunk : *result.chunks) {
 
-			// Whisper timestamps are in Seconds. Audio is 16000 Hz.
 			size_t startIdx = (size_t)(transcribedChunk.start_ts * 16000);
 			size_t endIdx = (size_t)(transcribedChunk.end_ts * 16000);
 
@@ -78,16 +78,16 @@ std::string TranscriptionEngine::ProcessLoop() {
 				std::vector<float> currentEmbedding = m_speakerEncoder->GetEmbedding(clip);
 
 				if (m_doctorProfile.empty()) {
-					// First person to speak is assumed to be the Doctor
+					// first person to speak is assumed to be the Doctor
 					m_doctorProfile = currentEmbedding;
 					speakerLabel = "Doctor";
 				}
 				else {
-					// Compare with Doctor
+					// compare with doctor
 					float score = SpeakerEncoder::CosineSimilarity(m_doctorProfile, currentEmbedding);
 					std::string scoreStr = std::to_string(score).substr(0, 4); // "0.85"
 
-					// Threshold: usually 0.5 - 0.7 for ECAPA-TDNN
+					// usually 0.5 - 0.7 for ECAPA-TDNN
 					if (score > 0.8f) {
 						speakerLabel = "Doctor";
 					}

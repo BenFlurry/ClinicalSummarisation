@@ -3,12 +3,13 @@
 #include "Helpers.h"
 #include <filesystem>
 
+// load med42 model (may take up to 1 minute for GPU)
 void SummarisationEngine::loadModel() {
-
     std::filesystem::path modelPath = Helpers::GetModelPath("Med42-int4");
     m_model = new ov::genai::LLMPipeline(modelPath, "GPU");
 }
 
+// prompt med42 with transcript to create summary
 std::string SummarisationEngine::generateTranscription(std::string transcript) {
     std::string systemPrompt =
         "<|system|>\n"
@@ -16,7 +17,7 @@ std::string SummarisationEngine::generateTranscription(std::string transcript) {
         "Rules for Documentation:\n"
         "1. **Style**: Write in a formal, objective clinical style (Third Person). Do not tell a story.\n"
         "2. **Attribution**: Attribute facts to the patient (e.g., use 'The patient stated...', 'She reports...', 'Patient notes...').\n"
-        "3. **Detail**: Capture specific mechanisms of injury (e.g., 'mopping the floor'), specific dates (convert spoken dates to DD/MM/YYYY), and specific names of providers if mentioned.\n"
+        "3. **Detail**: Capture specific causes of injury, specific dates (convert spoken dates to DD/MM/YYYY), and specific names of providers if mentioned.\n"
         "4. **Chronology**: Present the history chronologically, starting with the initial onset/injury.\n"
         "5. **Content**: Include onset, duration, character of pain, aggravating factors, prior treatments, and recent exacerbations.\n"
         "\n"
@@ -36,8 +37,8 @@ std::string SummarisationEngine::generateTranscription(std::string transcript) {
     std::string fullPrompt = systemPrompt + userPrompt;
 
     ov::genai::GenerationConfig config;
-    config.max_new_tokens = 1024; // Allow long summaries
-    config.temperature = 0.2f;    // Low temperature = More factual/consistent
+    config.max_new_tokens = 1024; 
+    config.temperature = 0.2f;   
 
     ov::genai::DecodedResults res = m_model->generate(fullPrompt, config);
 

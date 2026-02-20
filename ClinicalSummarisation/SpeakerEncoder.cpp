@@ -6,36 +6,32 @@ SpeakerEncoder::SpeakerEncoder() {}
 SpeakerEncoder::~SpeakerEncoder() {}
 
 void SpeakerEncoder::Initialize(const std::string& modelPath, const std::string& device) {
-	// Load the model
+	// load the model
     is_loaded = false;
 	m_model = m_core.compile_model(modelPath, device);
 	m_request = m_model.create_infer_request();
     is_loaded = true;
 }
 
+// get the embedding from model
 std::vector<float> SpeakerEncoder::GetEmbedding(const std::vector<float>& audioBuffer) {
-    //if (!is_loaded || audioBuffer.empty()) return {};
-
-    // ECAPA-TDNN expects shape [1, Time]
-    // We must resize the input port to match the audio length dynamically
+    // resize for shape [1, Time]
     ov::Tensor inputTensor(ov::element::f32, { 1, audioBuffer.size() }, const_cast<float*>(audioBuffer.data()));
 
-    // Set input (OpenVINO now reads directly from your 'audioBuffer')
+    // set input buffer to audioBuffer
     m_request.set_input_tensor(inputTensor);
 
-    // 2. Run Inference
+    // run inference
     m_request.infer();
 
-    // 3. Extract Output
-    // The output is usually a 1x192 embedding vector
+    // extract output from tensor
     const auto& outputTensor = m_request.get_output_tensor();
     const float* outputData = outputTensor.data<float>();
-    size_t outputSize = outputTensor.get_size(); // Should be 192
-
-    // Copy to std::vector
+    size_t outputSize = outputTensor.get_size(); 
     return std::vector<float>(outputData, outputData + outputSize);
 }
 
+// calculate similarity between 2 voice prints
 float SpeakerEncoder::CosineSimilarity(const std::vector<float>& vecA, const std::vector<float>& vecB) {
     if (vecA.size() != vecB.size() || vecA.empty()) return 0.0f;
 

@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "DoctorEmbedding.h"
-#include "SpeakerEncoder.h" // Your AI Encoder header
+#include "SpeakerEncoder.h"
 
 #include <winrt/Windows.Storage.h>
 #include <dpapi.h>
@@ -13,7 +13,7 @@ void DoctorEmbedding::FinishEnrollmentEarly() { m_finishEarly = true; }
 void DoctorEmbedding::CancelEnrollment() { m_cancel = true; }
 
 
-// --- 1. MINIAUDIO CALLBACK ---
+// mini audio callback (required for miniaudio)
 void DoctorEmbedding::data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
     EnrollmentContext* context = (EnrollmentContext*)pDevice->pUserData;
@@ -30,7 +30,7 @@ void DoctorEmbedding::data_callback(ma_device* pDevice, void* pOutput, const voi
     }
 }
 
-// --- 2. ENROLLMENT FUNCTION ---
+// enroll the doctors voice, record and calculate embedding
 winrt::fire_and_forget DoctorEmbedding::EnrollNewSpeakerAsync(SpeakerEncoder* encoder)
 {
     // Move to background thread
@@ -62,10 +62,9 @@ winrt::fire_and_forget DoctorEmbedding::EnrollNewSpeakerAsync(SpeakerEncoder* en
 		co_return;
 	}
 
-	// Wait loop: Check every 100ms if recording is done
-	// (We wait for the callback to flip 'isRecording' to false)
 	int safetyTimeout = 0;
-	while (context.isRecording && safetyTimeout < 350) { // ~35 seconds max
+    // loop up to 35 seconds in 0.1s increments
+	while (context.isRecording && safetyTimeout < 350) { 
 		if (m_cancel) {
 			ma_device_uninit(&device);
 			co_return;
@@ -76,51 +75,50 @@ winrt::fire_and_forget DoctorEmbedding::EnrollNewSpeakerAsync(SpeakerEncoder* en
 		safetyTimeout++;
 	}
 
-	ma_device_uninit(&device); // Stop hardware
+    // stop recording
+	ma_device_uninit(&device); 
 
-	// Generate Profile
+    // generate profile
 	if (!context.audioBuffer.empty() && !m_cancel) {
-		// Assuming your SpeakerEncoder has a method like this:
 		std::vector<float> newProfile = encoder->GetEmbedding(context.audioBuffer);
-
-		// Save Securely
 		SaveToDisk(newProfile);
 
 	}
 }
 
-// --- 3. GETTER (Load Logic) ---
+// load the doctors speach embedding
 std::vector<float> DoctorEmbedding::getSpeachEmbedding()
 {
-    // If in memory, return it
+    // check if in memory
     if (!m_speachEmbedding.empty()) {
         return m_speachEmbedding;
     }
 
-    // Otherwise, try to load from disk
+    // load from disk if not in memory
     m_speachEmbedding = LoadFromDisk();
     return m_speachEmbedding;
 }
 
-// --- 4. DISK I/O & ENCRYPTION ---
+// get the doctors embedding location from system files
 std::string DoctorEmbedding::getFilePath() {
     auto localFolder = winrt::Windows::Storage::ApplicationData::Current().LocalFolder().Path();
     return winrt::to_string(localFolder) + "\\doctor_voice.dat";
 }
 
 void DoctorEmbedding::SaveToDisk(const std::vector<float>& embedding) {
-    m_speachEmbedding = embedding; // Update cache
+    // save into memory
+    m_speachEmbedding = embedding; 
 
     if (embedding.empty()) return;
 
-    // Prepare Data
+    // prepare data to encrypt
     DATA_BLOB dataIn;
     dataIn.cbData = static_cast<DWORD>(embedding.size() * sizeof(float));
     dataIn.pbData = reinterpret_cast<BYTE*>(const_cast<float*>(embedding.data()));
 
     DATA_BLOB dataOut;
 
-    // Encrypt (User-specific)
+    // handle encryption
     if (CryptProtectData(&dataIn, L"DoctorVoiceProfile", NULL, NULL, NULL, CRYPTPROTECT_UI_FORBIDDEN, &dataOut)) {
 
         std::ofstream file(getFilePath(), std::ios::binary);
@@ -132,6 +130,7 @@ void DoctorEmbedding::SaveToDisk(const std::vector<float>& embedding) {
     }
 }
 
+// load doctor embedding from disk
 std::vector<float> DoctorEmbedding::LoadFromDisk() {
     std::ifstream file(getFilePath(), std::ios::binary | std::ios::ate);
     if (!file.is_open()) return {};
@@ -142,7 +141,7 @@ std::vector<float> DoctorEmbedding::LoadFromDisk() {
     std::vector<BYTE> encryptedBytes(size);
     if (!file.read(reinterpret_cast<char*>(encryptedBytes.data()), size)) return {};
 
-    // Prepare Decryption
+    // prepare data to decrypt
     DATA_BLOB dataIn;
     dataIn.cbData = static_cast<DWORD>(encryptedBytes.size());
     dataIn.pbData = encryptedBytes.data();
@@ -151,7 +150,7 @@ std::vector<float> DoctorEmbedding::LoadFromDisk() {
 
     std::vector<float> result;
 
-    // Decrypt
+    // decrypt
     if (CryptUnprotectData(&dataIn, NULL, NULL, NULL, NULL, 0, &dataOut)) {
         size_t floatCount = dataOut.cbData / sizeof(float);
         result.resize(floatCount);

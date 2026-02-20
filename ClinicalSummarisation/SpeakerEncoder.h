@@ -9,10 +9,7 @@ public:
     SpeakerEncoder();
     ~SpeakerEncoder();
 
-    // Load the OpenVINO model (e.g., "speaker_encoder_int8/openvino_model.xml")
-    void Initialize(const std::string& modelPath, const std::string& device = "NPU");
-
-    // Main function: Turns audio samples into a 192-float vector
+    void Initialize(const std::string& modelPath, const std::string& device = "CPU");
     std::vector<float> GetEmbedding(const std::vector<float>& audioBuffer);
 
     // Helper to compare two fingerprints (0.0 to 1.0 score)

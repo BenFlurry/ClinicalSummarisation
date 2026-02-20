@@ -2,9 +2,9 @@
 #include <vector>
 #include <string>
 #include <winrt/Windows.Foundation.h> 
-#include "miniaudio.h" // Include the header, but DO NOT define IMPLEMENTATION here
+#include "miniaudio.h" 
 
-// Forward declaration
+// declare so we can use
 class SpeakerEncoder;
 
 class DoctorEmbedding {
@@ -20,18 +20,19 @@ private:
     std::atomic<bool> m_finishEarly{ false };
     std::atomic<bool> m_cancel{ false };
 
-    // Helpers
+    // helpers
     void SaveToDisk(const std::vector<float>& embedding);
     std::vector<float> LoadFromDisk();
     std::string getFilePath();
 
-    // Miniaudio Callback Context
+    // mini audio callback context
     struct EnrollmentContext {
         std::vector<float> audioBuffer;
         bool isRecording = false;
-        size_t maxSamples = 16000 * 30; // 30 Seconds at 16kHz
+        // 30s at 16kHz
+        size_t maxSamples = 16000 * 30; 
     };
 
-    // Static callback for Miniaudio
+    // static callback for Miniaudio
     static void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
 };
