@@ -219,145 +219,107 @@ namespace winrt::ClinicalSummarisation::implementation
 
     }
 
+
     // save summarisation to text file
-    winrt::fire_and_forget MainWindow::saveSummarisation_Click(IInspectable const&, RoutedEventArgs const&)
-    {
-        try
-        {
+    winrt::fire_and_forget MainWindow::saveSummarisation_Click(IInspectable const&, RoutedEventArgs const&) {
+        try {
             auto now = std::chrono::system_clock::now();
             std::time_t now_c = std::chrono::system_clock::to_time_t(now);
             std::tm now_tm;
 
-            // 2. Convert to local time safely (Windows requires localtime_s)
             localtime_s(&now_tm, &now_c);
 
-            // 3. Format the string (YYYY-MM-DD-Summary-)
             std::wstringstream wss;
             wss << std::put_time(&now_tm, L"%Y-%m-%d-Summary-");
 
-            // 4. Set the suggested file name
-            // 1. Create the FileSavePicker
             winrt::Windows::Storage::Pickers::FileSavePicker savePicker;
 
-            // 2. IMPORTANT: Initialize it with your Window Handle (WinUI 3 Requirement)
-            // If you skip this, the app will crash or the dialog won't show.
+            // initialise with windows handle
             auto initializeWithWindow = savePicker.as<::IInitializeWithWindow>();
             initializeWithWindow->Initialize(m_hWnd);
 
-            // 3. Configure the Options
             savePicker.SuggestedStartLocation(winrt::Windows::Storage::Pickers::PickerLocationId::DocumentsLibrary);
             savePicker.FileTypeChoices().Insert(L"Text File", winrt::single_threaded_vector<winrt::hstring>({ L".txt" }));
-            // TODO
             savePicker.SuggestedFileName(wss.str());
 
-            // 4. Show the Dialog and Wait for User Selection
+            // show windows file system 
             winrt::Windows::Storage::StorageFile file = co_await savePicker.PickSaveFileAsync();
 
-            if (file)
-            {
-                // 5. User picked a file -> Write the content
-                // We get the text from the UI box
+            if (file) {
                 winrt::hstring content = winrt::to_hstring(m_summarisation);
 
-                // Prevent empty file errors if box is empty
+                // prevent empty file errors if box is empty
                 if (content.empty()) content = L"No summarisation available.";
 
-                // Write to file asynchronously
+                // write to file asynchronously
                 co_await winrt::Windows::Storage::FileIO::WriteTextAsync(file, content);
 
-                // Optional: Update UI to say "Saved!"
             }
-            else
-            {
+            else {
                 StatusText().Text(L"Save Cancelled");
             }
         }
-        catch (winrt::hresult_error const& ex)
-        {
-            // 1. Catch Windows-specific errors (Permissions, File Locked, etc.)
-            // ex.message() returns a helpful localized string
+        catch (winrt::hresult_error const& ex) {
+            // catch windows errors
             StatusText().Text(L"Save Failed: " + ex.message());
         }
-        catch (std::exception const& ex)
-        {
-            // 2. Catch Standard C++ errors
-            // Convert 'char*' to 'hstring'
+        catch (std::exception const& ex) {
+            // catch c++ errors
             StatusText().Text(L"Error: " + winrt::to_hstring(ex.what()));
         }
-        catch (...)
-        {
-            // 3. Catch anything else
+        catch (...) {
+            // other errors
             StatusText().Text(L"An unknown error occurred while saving.");
         }
     }
 
-    winrt::fire_and_forget MainWindow::saveTranscription_Click(IInspectable const&, RoutedEventArgs const&)
-    {
-        try
-        {
+    winrt::fire_and_forget MainWindow::saveTranscription_Click(IInspectable const&, RoutedEventArgs const&) {
+        try {
             auto now = std::chrono::system_clock::now();
             std::time_t now_c = std::chrono::system_clock::to_time_t(now);
             std::tm now_tm;
 
-            // 2. Convert to local time safely (Windows requires localtime_s)
             localtime_s(&now_tm, &now_c);
 
-            // 3. Format the string (YYYY-MM-DD-Summary-)
             std::wstringstream wss;
             wss << std::put_time(&now_tm, L"%Y-%m-%d-Transcript-");
 
-            // 4. Set the suggested file name
-            // 1. Create the FileSavePicker
             winrt::Windows::Storage::Pickers::FileSavePicker savePicker;
 
-            // 2. IMPORTANT: Initialize it with your Window Handle (WinUI 3 Requirement)
-            // If you skip this, the app will crash or the dialog won't show.
+            // initialise with window handle
             auto initializeWithWindow = savePicker.as<::IInitializeWithWindow>();
             initializeWithWindow->Initialize(m_hWnd);
 
-            // 3. Configure the Options
             savePicker.SuggestedStartLocation(winrt::Windows::Storage::Pickers::PickerLocationId::DocumentsLibrary);
             savePicker.FileTypeChoices().Insert(L"Text File", winrt::single_threaded_vector<winrt::hstring>({ L".txt" }));
-            // TODO
             savePicker.SuggestedFileName(wss.str());
 
-            // 4. Show the Dialog and Wait for User Selection
+            // show windows file system
             winrt::Windows::Storage::StorageFile file = co_await savePicker.PickSaveFileAsync();
 
-            if (file)
-            {
-                // 5. User picked a file -> Write the content
-                // We get the text from the UI box
+            if (file) {
                 winrt::hstring content = winrt::to_hstring(m_transcription);
 
-                // Prevent empty file errors if box is empty
+                // prevent empty file errors if box is empty
                 if (content.empty()) content = L"No transcription available.";
 
-                // Write to file asynchronously
+                // write to file asynchronously
                 co_await winrt::Windows::Storage::FileIO::WriteTextAsync(file, content);
 
-                // Optional: Update UI to say "Saved!"
             }
-            else
-            {
+            else {
                 StatusText().Text(L"Save Cancelled");
             }
         }
-        catch (winrt::hresult_error const& ex)
-        {
-            // 1. Catch Windows-specific errors (Permissions, File Locked, etc.)
-            // ex.message() returns a helpful localized string
+        catch (winrt::hresult_error const& ex) {
+            // windows specific errors
             StatusText().Text(L"Save Failed: " + ex.message());
         }
-        catch (std::exception const& ex)
-        {
-            // 2. Catch Standard C++ errors
-            // Convert 'char*' to 'hstring'
+        catch (std::exception const& ex) {
+            // standard c++ errors
             StatusText().Text(L"Error: " + winrt::to_hstring(ex.what()));
         }
-        catch (...)
-        {
-            // 3. Catch anything else
+        catch (...) {
             StatusText().Text(L"An unknown error occurred while saving.");
         }
     }
