@@ -30,10 +30,10 @@
 using namespace winrt;
 using namespace winrt::Microsoft::UI::Xaml;
 
-namespace winrt::ClinicalSummarisation::implementation
-{
-    MainWindow::MainWindow()
-    {
+namespace winrt::ClinicalSummarisation::implementation {
+
+    MainWindow::MainWindow() {
+
         InitializeComponent();
         // load available mics
         MainWindow::loadMicrophones();
@@ -109,8 +109,7 @@ namespace winrt::ClinicalSummarisation::implementation
     }
 
     // when the user presses start recording
-    void MainWindow::startRecording_Click(IInspectable const&, RoutedEventArgs const&)
-    {
+    void MainWindow::startRecording_Click(IInspectable const&, RoutedEventArgs const&) {
         MainWindow::SetAppState(AppState::Recording);
 
         // get our selected mic and find its name
@@ -174,8 +173,7 @@ namespace winrt::ClinicalSummarisation::implementation
     }
 
     // when user finishes recording conversation
-    void MainWindow::stopRecording_Click(IInspectable const&, RoutedEventArgs const&)
-    {
+    void MainWindow::stopRecording_Click(IInspectable const&, RoutedEventArgs const&) {
         MainWindow::SetAppState(AppState::GeneratingSummarisation);
 
         // stop recording, flushing the last chunk of audio data into the bridge
@@ -185,8 +183,7 @@ namespace winrt::ClinicalSummarisation::implementation
     }
 
     // to copy summarisation to clipboard
-    void MainWindow::copyButton_Click(IInspectable const&, RoutedEventArgs const&)
-    {
+    void MainWindow::copyButton_Click(IInspectable const&, RoutedEventArgs const&) {
         // create window data package and add text from the editable UI summary box
         winrt::Windows::ApplicationModel::DataTransfer::DataPackage package;
         package.SetText(MyTextBox().Text());
@@ -356,8 +353,7 @@ namespace winrt::ClinicalSummarisation::implementation
     }
 
     // start doctor voice print 
-    void MainWindow::enrollVoice_Click(IInspectable const&, RoutedEventArgs const&)
-    {
+    void MainWindow::enrollVoice_Click(IInspectable const&, RoutedEventArgs const&) {
         MainWindow::SetAppState(AppState::EnrollingVoice);
 
         // check models have loaded
@@ -391,13 +387,11 @@ namespace winrt::ClinicalSummarisation::implementation
     winrt::fire_and_forget MainWindow::createAppraisal_Click(IInspectable const&, RoutedEventArgs const&) {
         AppraisalSummaryBox().Text(winrt::to_hstring(m_summarisation));
 
-        // load appraisal name with YYYY-MM-DD_Appraisal_
-        std::wstring filenamePrefix = MainWindow::getFilenamePrefix(L"%Y-%m-%d_Appraisal_");
-        AppraisalNameBox().Text(filenamePrefix);
+        AppraisalNameBox().Text(L"Enter appraisal name");
         AppraisalNameBox().SelectionStart(AppraisalNameBox().Text().size());
 
-        AppraisalTagsBox().Text(L"");
-        AppraisalNotesBox().Text(L"");
+        AppraisalTagsBox().Text(L"Enter tags e.g. flu, pregnancy");
+        AppraisalNotesBox().Text(L"Enter appraisal notes");
 
         // bind the popup to the main window's visual tree
         AppraisalDialog().XamlRoot(this->Content().XamlRoot());
@@ -414,7 +408,6 @@ namespace winrt::ClinicalSummarisation::implementation
         winrt::hstring tags = AppraisalTagsBox().Text();
         winrt::hstring notes = AppraisalNotesBox().Text();
 
-        // TODO: Pass these variables to your database or save them to a file here!
 
         AppraisalDialog().Hide();
 
@@ -424,38 +417,35 @@ namespace winrt::ClinicalSummarisation::implementation
         txtContent << L"Summary:\n" << std::wstring_view(summary) << L"\n\n";
         txtContent << L"Notes:\n" << std::wstring_view(notes) << L"\n";
 
-        // Start both save processes asynchronously
+        // save to json and user placed text file
         std::wstring fileName = name.empty() ? L"Untitled_Appraisal" : std::wstring(name);
 
-        // This triggers the Win32 window so the user gets their .txt file exactly where they want it
-        co_await MainWindow::SaveTextToFileAsync(fileName, winrt::hstring(txtContent.str()));
+        // set .txt filename to have the YYYY-MM-DD_Appraisal_ prefix
+        std::wstring filePrefix = MainWindow::getFilenamePrefix(L"%Y-%m-%d_Appraisal_");
+        std::wstring fileName = filePrefix + (name.empty() ? L"Untitled" : std::wstring(name));
 
-        // This silently saves the data into our JSON storage in the background!
+        co_await MainWindow::SaveTextToFileAsync(fileName, winrt::hstring(txtContent.str()));
         co_await MainWindow::SaveAppraisalToJsonAsync(name, summary, tags, notes);
     }
 
+    // creates an empty JSON database for appraisals if it doesn't exist
     winrt::fire_and_forget MainWindow::InitialiseDatabase() {
         using namespace winrt::Windows::Storage;
         using namespace winrt::Windows::Data::Json;
 
         StorageFolder localFolder = ApplicationData::Current().LocalFolder();
 
-        // 1. Check if the file exists safely
+        // check if file exists and return if so, otherwise create empty JSON object in file
         IStorageItem item = co_await localFolder.TryGetItemAsync(L"appraisals.json");
+        if (item) co_return;
 
-        // 2. If it does NOT exist, create it and write "{}"
-        if (!item)
-        {
-            StorageFile file = co_await localFolder.CreateFileAsync(L"appraisals.json", CreationCollisionOption::FailIfExists);
-
-            // Initialize with an empty JSON object
-            JsonObject root;
-            co_await FileIO::WriteTextAsync(file, root.Stringify());
-        }
+		StorageFile file = co_await localFolder.CreateFileAsync(L"appraisals.json", CreationCollisionOption::FailIfExists);
+		JsonObject root;
+		co_await FileIO::WriteTextAsync(file, root.Stringify());
     }
 
-    winrt::Windows::Foundation::IAsyncAction MainWindow::SaveAppraisalToJsonAsync(winrt::hstring name, winrt::hstring summary, winrt::hstring tags, winrt::hstring notes)
-    {
+    // adds the appraisal to the JSON file in AppData/App/LocalState for offline storage
+    winrt::Windows::Foundation::IAsyncAction MainWindow::SaveAppraisalToJsonAsync(winrt::hstring name, winrt::hstring summary, winrt::hstring tags, winrt::hstring notes) {
         using namespace winrt::Windows::Storage;
         using namespace winrt::Windows::Data::Json;
 
@@ -475,8 +465,13 @@ namespace winrt::ClinicalSummarisation::implementation
 
         // create data for this appraisal
         JsonObject appraisalData;
+
+        // get the date and time
         appraisalData.SetNamedValue(L"summary", JsonValue::CreateStringValue(summary));
         appraisalData.SetNamedValue(L"notes", JsonValue::CreateStringValue(notes));
+
+        std::wstring dateString = MainWindow::getFilenamePrefix(L"%Y-%m-%dT%H:%M:%S");
+        appraisalData.SetNamedValue(L"date", JsonValue::CreateStringValue(dateString));
 
         // turn tags into json array
         JsonArray tagsArray;
@@ -621,7 +616,7 @@ namespace winrt::ClinicalSummarisation::implementation
 				startRecording_btn().IsEnabled(true);
                 break;
             }
-            });
+		});
     }
 }
 
