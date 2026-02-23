@@ -4,8 +4,8 @@
 #include "MainWindow.g.cpp"
 #endif
 
-#include <winrt/Windows.Storage.h>
 #include <microsoft.ui.xaml.window.h> 
+#include <winrt/Windows.Storage.h>
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Windows.ApplicationModel.DataTransfer.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
@@ -15,13 +15,20 @@
 #include <winrt/Windows.Storage.Pickers.h>
 #include <winrt/Windows.Storage.Provider.h>
 #include <winrt/Windows.Storage.AccessCache.h>
+#include <winrt/Windows.Data.Json.h>
 #include <shobjidl.h>
+#include <shlobj.h>
 #include <iomanip>
 #include <sstream>
 #include <ctime>
+#include <wrl/client.h>
+#include <fstream>
+#include <KnownFolders.h>
+
+#pragma comment(lib, "shell32.lib")
 
 using namespace winrt;
-using namespace Microsoft::UI::Xaml;
+using namespace winrt::Microsoft::UI::Xaml;
 
 namespace winrt::ClinicalSummarisation::implementation
 {
@@ -30,6 +37,7 @@ namespace winrt::ClinicalSummarisation::implementation
         InitializeComponent();
         // load available mics
         MainWindow::loadMicrophones();
+        MainWindow::InitialiseDatabase();
 
         // background
         SystemBackdrop(winrt::Microsoft::UI::Xaml::Media::MicaBackdrop());
@@ -221,21 +229,97 @@ namespace winrt::ClinicalSummarisation::implementation
     }
 
     winrt::Windows::Foundation::IAsyncAction MainWindow::SaveTextToFileAsync(std::wstring suggestedFileName, winrt::hstring content) { 
-		winrt::Windows::Storage::Pickers::FileSavePicker savePicker;
+        // Safer, winrt method of saving the text to file without the default file location
 
-		// initialise with window handle
-		auto initializeWithWindow = savePicker.as<::IInitializeWithWindow>();
-		initializeWithWindow->Initialize(m_hWnd);
+		//winrt::Windows::Storage::Pickers::FileSavePicker savePicker;
 
-		savePicker.SuggestedStartLocation(winrt::Windows::Storage::Pickers::PickerLocationId::DocumentsLibrary);
-		savePicker.FileTypeChoices().Insert(L"Text File", winrt::single_threaded_vector<winrt::hstring>({ L".txt" }));
-		savePicker.SuggestedFileName(suggestedFileName);
+		//// initialise with window handle
+		//auto initializeWithWindow = savePicker.as<::IInitializeWithWindow>();
+		//initializeWithWindow->Initialize(m_hWnd);
 
-		// show windows file system 
-		winrt::Windows::Storage::StorageFile file = co_await savePicker.PickSaveFileAsync();
+		//savePicker.SuggestedStartLocation(winrt::Windows::Storage::Pickers::PickerLocationId::DocumentsLibrary);
+		//savePicker.FileTypeChoices().Insert(L"Text File", winrt::single_threaded_vector<winrt::hstring>({ L".txt" }));
+		//savePicker.SuggestedFileName(suggestedFileName);
 
-		// write to file asynchronously
-		co_await winrt::Windows::Storage::FileIO::WriteTextAsync(file, content);
+		//// show windows file system 
+		//winrt::Windows::Storage::StorageFile file = co_await savePicker.PickSaveFileAsync();
+
+		//// write to file asynchronously
+		//co_await winrt::Windows::Storage::FileIO::WriteTextAsync(file, content);
+
+        // Hacky way that means it opens the file explorer at the folder of the default file location setting
+        ::Microsoft::WRL::ComPtr<IFileSaveDialog> dialog;
+        winrt::check_hresult(CoCreateInstance(CLSID_FileSaveDialog, nullptr, CLSCTX_ALL, IID_PPV_ARGS(&dialog)));
+
+        // set starting folder from settings
+        auto localSettings = winrt::Windows::Storage::ApplicationData::Current().LocalSettings();
+        auto tokenBox = localSettings.Values().TryLookup(L"DefaultSaveToken");
+
+        bool customFolderSet = false;
+
+        if (tokenBox) {
+            try {
+                // get winrt token for saved folder
+                winrt::hstring token = winrt::unbox_value<winrt::hstring>(tokenBox);
+                winrt::Windows::Storage::StorageFolder savedFolder = co_await winrt::Windows::Storage::AccessCache::StorageApplicationPermissions::FutureAccessList().GetFolderAsync(token);
+
+                // convert to win32 shell item
+                ::Microsoft::WRL::ComPtr<IShellItem> folderItem;
+                if (SUCCEEDED(SHCreateItemFromParsingName(savedFolder.Path().c_str(), nullptr, IID_PPV_ARGS(&folderItem)))) {
+                    // set dialog to open at this folder
+                    dialog->SetFolder(folderItem.Get());
+                    customFolderSet = true;
+                }
+            }
+            catch (...) {
+                // any errors opening this folder we pass and use the desktop as default
+            }
+        }
+
+        if (!customFolderSet) {
+            ::Microsoft::WRL::ComPtr<IShellItem> desktopItem;
+
+            // FOLDERID_Desktop gets the exact path of the current user's desktop
+            if (SUCCEEDED(SHGetKnownFolderItem(FOLDERID_Desktop, KF_FLAG_DEFAULT, nullptr, IID_PPV_ARGS(&desktopItem)))) {
+                dialog->SetFolder(desktopItem.Get());
+            }
+        }
+
+        // set file type to .txt
+        COMDLG_FILTERSPEC spec[] = { { L"Text File", L"*.txt" } };
+        dialog->SetFileTypes(1, spec);
+        dialog->SetDefaultExtension(L"txt");
+
+        // load suggested file name
+        dialog->SetFileName(suggestedFileName.c_str());
+
+        // show file explorer to user
+        HRESULT handleResult = dialog->Show(m_hWnd);
+
+        // if save is pressed
+        if (SUCCEEDED(handleResult)) {
+            ::Microsoft::WRL::ComPtr<IShellItem> resultItem;
+            dialog->GetResult(&resultItem);
+
+            PWSTR pszFilePath = nullptr;
+            resultItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+            if (pszFilePath) {
+                // write text to file
+                std::string utf8Content = winrt::to_string(content);
+                if (utf8Content.empty()) utf8Content = "No content available.";
+
+                std::ofstream outFile(pszFilePath, std::ios::out | std::ios::binary);
+                if (outFile.is_open()) {
+                    outFile.write(utf8Content.c_str(), utf8Content.size());
+                    outFile.close();
+                }
+
+                // free path string memory
+                CoTaskMemFree(pszFilePath);
+            }
+        }
+        // do nothing otherwise
     }
 
     std::wstring MainWindow::getFilenamePrefix(const wchar_t* formatString) {
@@ -333,8 +417,97 @@ namespace winrt::ClinicalSummarisation::implementation
         // TODO: Pass these variables to your database or save them to a file here!
 
         AppraisalDialog().Hide();
+
+        std::wstringstream txtContent;
+        txtContent << L"Appraisal Name: " << std::wstring_view(name) << L"\n\n";
+        txtContent << L"Tags: " << std::wstring_view(tags) << L"\n\n";
+        txtContent << L"Summary:\n" << std::wstring_view(summary) << L"\n\n";
+        txtContent << L"Notes:\n" << std::wstring_view(notes) << L"\n";
+
+        // Start both save processes asynchronously
+        std::wstring fileName = name.empty() ? L"Untitled_Appraisal" : std::wstring(name);
+
+        // This triggers the Win32 window so the user gets their .txt file exactly where they want it
+        co_await MainWindow::SaveTextToFileAsync(fileName, winrt::hstring(txtContent.str()));
+
+        // This silently saves the data into our JSON storage in the background!
+        co_await MainWindow::SaveAppraisalToJsonAsync(name, summary, tags, notes);
     }
 
+    winrt::fire_and_forget MainWindow::InitialiseDatabase() {
+        using namespace winrt::Windows::Storage;
+        using namespace winrt::Windows::Data::Json;
+
+        StorageFolder localFolder = ApplicationData::Current().LocalFolder();
+
+        // 1. Check if the file exists safely
+        IStorageItem item = co_await localFolder.TryGetItemAsync(L"appraisals.json");
+
+        // 2. If it does NOT exist, create it and write "{}"
+        if (!item)
+        {
+            StorageFile file = co_await localFolder.CreateFileAsync(L"appraisals.json", CreationCollisionOption::FailIfExists);
+
+            // Initialize with an empty JSON object
+            JsonObject root;
+            co_await FileIO::WriteTextAsync(file, root.Stringify());
+        }
+    }
+
+    winrt::Windows::Foundation::IAsyncAction MainWindow::SaveAppraisalToJsonAsync(winrt::hstring name, winrt::hstring summary, winrt::hstring tags, winrt::hstring notes)
+    {
+        using namespace winrt::Windows::Storage;
+        using namespace winrt::Windows::Data::Json;
+
+        StorageFolder localFolder = ApplicationData::Current().LocalFolder();
+
+        // get the json file with all the appraisals stored in the localstate section of app data for this application
+        StorageFile file = co_await localFolder.GetFileAsync(L"appraisals.json");
+
+        // read
+        winrt::hstring jsonString = co_await FileIO::ReadTextAsync(file);
+        JsonObject rootObject;
+
+        if (!JsonObject::TryParse(jsonString, rootObject)) {
+            // start fresh if file is corrupted
+            rootObject = JsonObject(); 
+        }
+
+        // create data for this appraisal
+        JsonObject appraisalData;
+        appraisalData.SetNamedValue(L"summary", JsonValue::CreateStringValue(summary));
+        appraisalData.SetNamedValue(L"notes", JsonValue::CreateStringValue(notes));
+
+        // turn tags into json array
+        JsonArray tagsArray;
+        std::wstring tagsStr = tags.c_str();
+        std::wstringstream ts(tagsStr);
+        std::wstring token;
+
+		// string trimming for tags
+        while (std::getline(ts, token, L',')) {
+            size_t first = token.find_first_not_of(L" ");
+            size_t last = token.find_last_not_of(L" ");
+            if (first != std::string::npos && last != std::string::npos) {
+                token = token.substr(first, (last - first + 1));
+                tagsArray.Append(JsonValue::CreateStringValue(token));
+            }
+        }
+
+        // default to untagged if empty
+        if (tagsArray.Size() == 0) tagsArray.Append(JsonValue::CreateStringValue(L"untagged"));
+
+        appraisalData.SetNamedValue(L"tags", tagsArray);
+
+        // save with appraisal name as the key
+        winrt::hstring keyName = name.empty() ? L"Untitled_Appraisal" : name;
+        rootObject.SetNamedValue(keyName, appraisalData);
+
+        // write to disk
+        co_await FileIO::WriteTextAsync(file, rootObject.Stringify());
+        // TODO: what if appraisals have multiple names
+    }    
+    
     // discarding appraisal form
     void MainWindow::appraisalDialog_CancelClick(IInspectable const&, RoutedEventArgs const&) {
         AppraisalDialog().Hide();

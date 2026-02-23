@@ -51,7 +51,9 @@ namespace winrt::ClinicalSummarisation::implementation
 
         std::wstring getFilenamePrefix(const wchar_t* formatString);
         winrt::Windows::Foundation::IAsyncAction SaveTextToFileAsync(std::wstring suggestedFileName, winrt::hstring content);
+        winrt::Windows::Foundation::IAsyncAction SaveAppraisalToJsonAsync(winrt::hstring name, winrt::hstring summary, winrt::hstring tags, winrt::hstring notes);
         winrt::Windows::Foundation::IAsyncAction SelectDefaultSaveLocationAsync();
+        winrt::fire_and_forget InitialiseDatabase();
         winrt::fire_and_forget loadMicrophones();
 
         AudioTranscriptionBridge m_bridge;
