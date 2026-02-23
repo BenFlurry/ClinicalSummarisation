@@ -10,6 +10,7 @@
 #include <future>
 #include <thread>
 #include <atomic>
+#include <winrt/Windows.Storage.Pickers.h>
 
 namespace winrt::ClinicalSummarisation::implementation
 {
@@ -36,14 +37,22 @@ namespace winrt::ClinicalSummarisation::implementation
         void enrollVoice_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void finishEnrollment_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void cancelEnrollment_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
+        void appraisalDialog_CancelClick(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& args);        
         winrt::fire_and_forget saveTranscription_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
+        winrt::fire_and_forget appraisalDialog_SaveClick(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& args);
         winrt::fire_and_forget saveSummarisation_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
-        winrt::fire_and_forget loadMicrophones();
+        winrt::fire_and_forget createAppraisal_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
+        winrt::fire_and_forget changeSaveLocation_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
 
         
 
     private:
         void SetAppState(AppState state);
+
+        std::wstring getFilenamePrefix(const wchar_t* formatString);
+        winrt::Windows::Foundation::IAsyncAction SaveTextToFileAsync(std::wstring suggestedFileName, winrt::hstring content);
+        winrt::Windows::Foundation::IAsyncAction SelectDefaultSaveLocationAsync();
+        winrt::fire_and_forget loadMicrophones();
 
         AudioTranscriptionBridge m_bridge;
         AudioRecorder* m_recorder = nullptr;

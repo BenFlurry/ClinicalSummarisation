@@ -14,6 +14,7 @@
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Storage.Pickers.h>
 #include <winrt/Windows.Storage.Provider.h>
+#include <winrt/Windows.Storage.AccessCache.h>
 #include <shobjidl.h>
 #include <iomanip>
 #include <sstream>
@@ -219,109 +220,55 @@ namespace winrt::ClinicalSummarisation::implementation
 
     }
 
+    winrt::Windows::Foundation::IAsyncAction MainWindow::SaveTextToFileAsync(std::wstring suggestedFileName, winrt::hstring content) { 
+		winrt::Windows::Storage::Pickers::FileSavePicker savePicker;
+
+		// initialise with window handle
+		auto initializeWithWindow = savePicker.as<::IInitializeWithWindow>();
+		initializeWithWindow->Initialize(m_hWnd);
+
+		savePicker.SuggestedStartLocation(winrt::Windows::Storage::Pickers::PickerLocationId::DocumentsLibrary);
+		savePicker.FileTypeChoices().Insert(L"Text File", winrt::single_threaded_vector<winrt::hstring>({ L".txt" }));
+		savePicker.SuggestedFileName(suggestedFileName);
+
+		// show windows file system 
+		winrt::Windows::Storage::StorageFile file = co_await savePicker.PickSaveFileAsync();
+
+		// write to file asynchronously
+		co_await winrt::Windows::Storage::FileIO::WriteTextAsync(file, content);
+    }
+
+    std::wstring MainWindow::getFilenamePrefix(const wchar_t* formatString) {
+		std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+		std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+		std::tm now_tm;
+
+		localtime_s(&now_tm, &now_c);
+
+		std::wstringstream wss;
+		wss << std::put_time(&now_tm, formatString);
+        return wss.str();
+    }
 
     // save summarisation to text file
     winrt::fire_and_forget MainWindow::saveSummarisation_Click(IInspectable const&, RoutedEventArgs const&) {
-        try {
-            auto now = std::chrono::system_clock::now();
-            std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-            std::tm now_tm;
+		std::wstring filenamePrefix = MainWindow::getFilenamePrefix(L"%Y-%m-%d_Summary_");
 
-            localtime_s(&now_tm, &now_c);
+        // grab the text from the text box rather than m_summarisation in case the doctor has edited the summary
+		winrt::hstring content = MyTextBox().Text();
+		if (content.empty()) content = L"No summarisation available.";
 
-            std::wstringstream wss;
-            wss << std::put_time(&now_tm, L"%Y-%m-%d-Summary-");
-
-            winrt::Windows::Storage::Pickers::FileSavePicker savePicker;
-
-            // initialise with windows handle
-            auto initializeWithWindow = savePicker.as<::IInitializeWithWindow>();
-            initializeWithWindow->Initialize(m_hWnd);
-
-            savePicker.SuggestedStartLocation(winrt::Windows::Storage::Pickers::PickerLocationId::DocumentsLibrary);
-            savePicker.FileTypeChoices().Insert(L"Text File", winrt::single_threaded_vector<winrt::hstring>({ L".txt" }));
-            savePicker.SuggestedFileName(wss.str());
-
-            // show windows file system 
-            winrt::Windows::Storage::StorageFile file = co_await savePicker.PickSaveFileAsync();
-
-            if (file) {
-                winrt::hstring content = winrt::to_hstring(m_summarisation);
-
-                // prevent empty file errors if box is empty
-                if (content.empty()) content = L"No summarisation available.";
-
-                // write to file asynchronously
-                co_await winrt::Windows::Storage::FileIO::WriteTextAsync(file, content);
-
-            }
-            else {
-                StatusText().Text(L"Save Cancelled");
-            }
-        }
-        catch (winrt::hresult_error const& ex) {
-            // catch windows errors
-            StatusText().Text(L"Save Failed: " + ex.message());
-        }
-        catch (std::exception const& ex) {
-            // catch c++ errors
-            StatusText().Text(L"Error: " + winrt::to_hstring(ex.what()));
-        }
-        catch (...) {
-            // other errors
-            StatusText().Text(L"An unknown error occurred while saving.");
-        }
+		MainWindow::SaveTextToFileAsync(filenamePrefix, content);
     }
 
+    // save transcription to text file
     winrt::fire_and_forget MainWindow::saveTranscription_Click(IInspectable const&, RoutedEventArgs const&) {
-        try {
-            auto now = std::chrono::system_clock::now();
-            std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-            std::tm now_tm;
+		std::wstring filenamePrefix = MainWindow::getFilenamePrefix(L"%Y-%m-%d_Transcript_");
 
-            localtime_s(&now_tm, &now_c);
+		winrt::hstring content = winrt::to_hstring(m_transcription);
+		if (content.empty()) content = L"No transcription available.";
 
-            std::wstringstream wss;
-            wss << std::put_time(&now_tm, L"%Y-%m-%d-Transcript-");
-
-            winrt::Windows::Storage::Pickers::FileSavePicker savePicker;
-
-            // initialise with window handle
-            auto initializeWithWindow = savePicker.as<::IInitializeWithWindow>();
-            initializeWithWindow->Initialize(m_hWnd);
-
-            savePicker.SuggestedStartLocation(winrt::Windows::Storage::Pickers::PickerLocationId::DocumentsLibrary);
-            savePicker.FileTypeChoices().Insert(L"Text File", winrt::single_threaded_vector<winrt::hstring>({ L".txt" }));
-            savePicker.SuggestedFileName(wss.str());
-
-            // show windows file system
-            winrt::Windows::Storage::StorageFile file = co_await savePicker.PickSaveFileAsync();
-
-            if (file) {
-                winrt::hstring content = winrt::to_hstring(m_transcription);
-
-                // prevent empty file errors if box is empty
-                if (content.empty()) content = L"No transcription available.";
-
-                // write to file asynchronously
-                co_await winrt::Windows::Storage::FileIO::WriteTextAsync(file, content);
-
-            }
-            else {
-                StatusText().Text(L"Save Cancelled");
-            }
-        }
-        catch (winrt::hresult_error const& ex) {
-            // windows specific errors
-            StatusText().Text(L"Save Failed: " + ex.message());
-        }
-        catch (std::exception const& ex) {
-            // standard c++ errors
-            StatusText().Text(L"Error: " + winrt::to_hstring(ex.what()));
-        }
-        catch (...) {
-            StatusText().Text(L"An unknown error occurred while saving.");
-        }
+		MainWindow::SaveTextToFileAsync(filenamePrefix, content);
     }
 
     // start doctor voice print 
@@ -340,8 +287,7 @@ namespace winrt::ClinicalSummarisation::implementation
     }
 
     // finish doctor voice print
-    void MainWindow::finishEnrollment_Click(IInspectable const&, RoutedEventArgs const&)
-    {
+    void MainWindow::finishEnrollment_Click(IInspectable const&, RoutedEventArgs const&) {
         m_doctorEmbedding.FinishEnrollmentEarly();
 
         MainWindow::SetAppState(AppState::WaitingRecording);
@@ -350,12 +296,93 @@ namespace winrt::ClinicalSummarisation::implementation
     }
 
     // cancel enrollment
-    void MainWindow::cancelEnrollment_Click(IInspectable const&, RoutedEventArgs const&)
-    {
+    void MainWindow::cancelEnrollment_Click(IInspectable const&, RoutedEventArgs const&) {
         // abort
         m_doctorEmbedding.CancelEnrollment();
         MainWindow::SetAppState(AppState::WaitingRecording);
         StatusText().Text(L"Voice Enrollment Cancelled.");
+    }
+
+    // handler to open appraisal form
+    winrt::fire_and_forget MainWindow::createAppraisal_Click(IInspectable const&, RoutedEventArgs const&) {
+        AppraisalSummaryBox().Text(winrt::to_hstring(m_summarisation));
+
+        // load appraisal name with YYYY-MM-DD_Appraisal_
+        std::wstring filenamePrefix = MainWindow::getFilenamePrefix(L"%Y-%m-%d_Appraisal_");
+        AppraisalNameBox().Text(filenamePrefix);
+        AppraisalNameBox().SelectionStart(AppraisalNameBox().Text().size());
+
+        AppraisalTagsBox().Text(L"");
+        AppraisalNotesBox().Text(L"");
+
+        // bind the popup to the main window's visual tree
+        AppraisalDialog().XamlRoot(this->Content().XamlRoot());
+
+        // show dialog 
+        co_await AppraisalDialog().ShowAsync();
+    }
+
+    // saving appraisal form 
+    winrt::fire_and_forget MainWindow::appraisalDialog_SaveClick(IInspectable const&, RoutedEventArgs const&) {
+        // extract text from boxes
+        winrt::hstring name = AppraisalNameBox().Text();
+        winrt::hstring summary = AppraisalSummaryBox().Text();
+        winrt::hstring tags = AppraisalTagsBox().Text();
+        winrt::hstring notes = AppraisalNotesBox().Text();
+
+        // TODO: Pass these variables to your database or save them to a file here!
+
+        AppraisalDialog().Hide();
+    }
+
+    // discarding appraisal form
+    void MainWindow::appraisalDialog_CancelClick(IInspectable const&, RoutedEventArgs const&) {
+        AppraisalDialog().Hide();
+    }
+
+    winrt::fire_and_forget MainWindow::changeSaveLocation_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args) {
+		// 1. Call the helper function to open the folder picker
+		co_await MainWindow::SelectDefaultSaveLocationAsync();
+
+		// 2. Retrieve the token we just saved to display the folder path in the UI
+		auto localSettings = winrt::Windows::Storage::ApplicationData::Current().LocalSettings();
+		auto tokenBox = localSettings.Values().TryLookup(L"DefaultSaveToken");
+
+		if (tokenBox) {
+			winrt::hstring token = winrt::unbox_value<winrt::hstring>(tokenBox);
+
+			// Get the folder from the FutureAccessList using the token
+			winrt::Windows::Storage::StorageFolder folder =
+				co_await winrt::Windows::Storage::AccessCache::StorageApplicationPermissions::FutureAccessList().GetFolderAsync(token);
+		}
+
+    }
+
+    winrt::Windows::Foundation::IAsyncAction MainWindow::SelectDefaultSaveLocationAsync()
+    {
+        winrt::Windows::Storage::Pickers::FolderPicker folderPicker;
+
+        // Initialize with the window handle
+        auto initializeWithWindow = folderPicker.as<::IInitializeWithWindow>();
+        initializeWithWindow->Initialize(m_hWnd);
+
+        folderPicker.SuggestedStartLocation(winrt::Windows::Storage::Pickers::PickerLocationId::DocumentsLibrary);
+
+        // folder picker crashes if < 1 filter is applied so use an empty filter
+        folderPicker.FileTypeFilter().Append(L"*");
+
+        // show picker
+        winrt::Windows::Storage::StorageFolder selectedFolder = co_await folderPicker.PickSingleFolderAsync();
+
+        if (selectedFolder)
+        {
+            // add the folder to the FutureAccessList to keep write permissions
+            winrt::hstring token = winrt::Windows::Storage::AccessCache::StorageApplicationPermissions::FutureAccessList().Add(selectedFolder);
+
+            // save to app local settings
+            auto localSettings = winrt::Windows::Storage::ApplicationData::Current().LocalSettings();
+            localSettings.Values().Insert(L"DefaultSaveToken", winrt::box_value(token));
+        }
     }
 
     // app state machine

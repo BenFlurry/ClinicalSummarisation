@@ -30,14 +30,18 @@
 
                             <StackPanel Spacing="8">
                                 <TextBlock Text="Microphone Input" FontWeight="SemiBold"/>
-                                <ComboBox SelectedIndex="0" HorizontalAlignment="Stretch" Name="MicComboBox">
-
+                                <ComboBox SelectedIndex="0" HorizontalAlignment="Stretch" Name="MicComboBox"> 
                                 </ComboBox>
                             </StackPanel>
 
                             <StackPanel Spacing="8">
                                 <TextBlock Text="Appearance" FontWeight="SemiBold"/>
                                 <ToggleSwitch Header="Dark Mode" IsOn="True"/>
+                            </StackPanel>
+
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Summarisation/Appraisal Save Folder" FontWeight="SemiBold"/>
+                                <Button x:Name="changeSaveLocation_btn" Content="Change Location" Click="changeSaveLocation_Click" IsEnabled="True" />
                             </StackPanel>
 
                             <MenuFlyoutSeparator/>
@@ -153,6 +157,7 @@
             </StackPanel>
 
             <StackPanel x:Name="PostSummarisationButtons" Orientation="Horizontal" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Right">
+                <Button x:Name="createAppraisal_btn" Content="Create Appraisal" Click="createAppraisal_Click" IsEnabled="True"/>
                 <Button x:Name="saveTranscript_btn" Content="Save Transcript" Click="saveTranscription_Click" IsEnabled="True"/>
                 <Button x:Name="saveSummarisation_btn" Content="Save Summarisation" Click="saveSummarisation_Click" IsEnabled="True"/>
                 <Button x:Name="copy_btn" 
@@ -177,9 +182,52 @@
                      Height="300" 
                      TextWrapping="Wrap" 
                      AcceptsReturn="True" 
-                     PlaceholderText="Transcription will appear here..."
+                     PlaceholderText="Summarisation will appear here..."
                      Visibility="Collapsed"/>
+
         </StackPanel>
 
+        <ContentDialog x:Name="AppraisalDialog"
+               Title="Create Appraisal"
+               MaxHeight="1000">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <ScrollViewer Grid.Row="0" Margin="0,0,-20,0" Padding="0,0,20,0" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="15" Width="500">
+                        <TextBox x:Name="AppraisalNameBox" Header="Appraisal Name" PlaceholderText="e.g., Annual Review, Post-Op Check..."/>
+                        <TextBox x:Name="AppraisalSummaryBox" Header="Summarisation" AcceptsReturn="True" Height="150" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                        <TextBox x:Name="AppraisalTagsBox" Header="Tags" PlaceholderText="e.g., follow-up, urgent, asthma..."/>
+                        <TextBox x:Name="AppraisalNotesBox" Header="Appraisal Notes" AcceptsReturn="True" Height="100" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <Grid Grid.Row="1" 
+              Background="{ThemeResource LayerFillColorAltBrush}" 
+              Margin="-24,20,-24,-24" 
+              Padding="24,12,24,12">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" 
+                    Content="Save" 
+                    HorizontalAlignment="Stretch" 
+                    Style="{StaticResource AccentButtonStyle}" 
+                    Click="appraisalDialog_SaveClick"/>
+
+                    <Button Grid.Column="2" 
+                    Content="Cancel" 
+                    HorizontalAlignment="Stretch" 
+                    Click="appraisalDialog_CancelClick"/>
+                </Grid>
+            </Grid>
+        </ContentDialog>
     </Grid>
 </Window>
