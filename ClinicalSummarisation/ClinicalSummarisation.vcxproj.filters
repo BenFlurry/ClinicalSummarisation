@@ -21,6 +21,12 @@
     <ClCompile Include="SpeakerEncoder.cpp" />
     <ClCompile Include="SummarisationEngine.cpp" />
     <ClCompile Include="DoctorEmbedding.cpp" />
+    <ClCompile Include="MainWindow.Recording.cpp" />
+    <ClCompile Include="MainWindow.Saving.cpp" />
+    <ClCompile Include="MainWindow.Appraisal.cpp" />
+    <ClCompile Include="..\MainWindow.Settings.cpp" />
+    <ClCompile Include="MainWindow.State.cpp" />
+    <ClCompile Include="MainWindow.Initialisation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

@@ -150,11 +150,17 @@
     <Page Include="MainWindow.xaml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\MainWindow.Settings.cpp" />
     <ClCompile Include="AudioRecorder.cpp" />
     <ClCompile Include="AudioRecordingThread.cpp" />
     <ClCompile Include="AudioTranscriptionBridge.cpp" />
     <ClCompile Include="DoctorEmbedding.cpp" />
     <ClCompile Include="Helpers.cpp" />
+    <ClCompile Include="MainWindow.Appraisal.cpp" />
+    <ClCompile Include="MainWindow.Initialisation.cpp" />
+    <ClCompile Include="MainWindow.Recording.cpp" />
+    <ClCompile Include="MainWindow.Saving.cpp" />
+    <ClCompile Include="MainWindow.State.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

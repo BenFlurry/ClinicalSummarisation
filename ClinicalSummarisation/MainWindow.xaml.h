@@ -2,18 +2,24 @@
 
 #include "MainWindow.g.h"
 
-#include "AudioRecorder.h"
-#include "TranscriptionEngine.h"
-#include "AudioTranscriptionBridge.h"
-#include "SummarisationEngine.h"
-#include "DoctorEmbedding.h"
-#include <future>
+// 1. Standard C++ Headers (Fixes std::thread, std::future, std::string, etc.)
+#include <string>
 #include <thread>
+#include <future>
 #include <atomic>
-#include <winrt/Windows.Storage.Pickers.h>
 
-namespace winrt::ClinicalSummarisation::implementation
-{
+// 2. Windows Headers (Fixes HWND)
+#include <windows.h>
+
+// 3. Your Custom Class Headers (Fixes AudioRecorder, Engines, etc.)
+// Make sure these filenames match exactly what is in your Solution Explorer
+#include "AudioStructures.h"
+#include "AudioRecorder.h"
+#include "TranscriptionEngine.h"  
+#include "SummarisationEngine.h"   
+#include "DoctorEmbedding.h"
+
+namespace winrt::ClinicalSummarisation::implementation {
     enum class AppState {
         Loading,
         EnrollingVoice,
@@ -25,8 +31,7 @@ namespace winrt::ClinicalSummarisation::implementation
         History
     };
 
-    struct MainWindow : MainWindowT<MainWindow>
-    {
+    struct MainWindow : MainWindowT<MainWindow> {
     public:
         MainWindow();
 
@@ -48,6 +53,10 @@ namespace winrt::ClinicalSummarisation::implementation
 
     private:
         void SetAppState(AppState state);
+
+        void InitialiseApplication();
+        void InitialiseUI();
+        void InitialiseTranscription();
 
         std::wstring getFilenamePrefix(const wchar_t* formatString);
         winrt::Windows::Foundation::IAsyncAction SaveTextToFileAsync(std::wstring suggestedFileName, winrt::hstring content);
@@ -76,9 +85,6 @@ namespace winrt::ClinicalSummarisation::implementation
 }
 
 // required for winui3
-namespace winrt::ClinicalSummarisation::factory_implementation
-{
-    struct MainWindow : MainWindowT<MainWindow, implementation::MainWindow>
-    {
-    };
+namespace winrt::ClinicalSummarisation::factory_implementation {
+    struct MainWindow : MainWindowT<MainWindow, implementation::MainWindow> { };
 }
