@@ -9,6 +9,8 @@ namespace winrt::ClinicalSummarisation::implementation {
     void MainWindow::SetAppState(AppState state) {
         this->DispatcherQueue().TryEnqueue([this, state]() {
             // default back to nothing
+            AppraisalsView().Visibility(Visibility::Collapsed);
+
             StatusSpinner().Visibility(Visibility::Collapsed);
             ControlButtons().Visibility(Visibility::Collapsed);
             EnrollmentPanel().Visibility(Visibility::Collapsed);
@@ -67,7 +69,12 @@ namespace winrt::ClinicalSummarisation::implementation {
                 saveTranscript_btn().Visibility(Visibility::Visible);
                 startRecording_btn().IsEnabled(true);
                 break;
+
+            case AppState::AppraisalsView:
+                AppraisalsView().Visibility(Visibility::Visible);
+                break;
             }
+
 		});
     }
 }

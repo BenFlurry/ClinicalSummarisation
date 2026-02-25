@@ -27,6 +27,7 @@
     <ClCompile Include="..\MainWindow.Settings.cpp" />
     <ClCompile Include="MainWindow.State.cpp" />
     <ClCompile Include="MainWindow.Initialisation.cpp" />
+    <ClCompile Include="MainWindow.DisplayAppraisals.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

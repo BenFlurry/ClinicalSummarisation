@@ -20,14 +20,11 @@ using namespace winrt;
 using namespace winrt::Microsoft::UI::Xaml;
 
 namespace winrt::ClinicalSummarisation::implementation {
+
+    // creates and shows the appraisal dialog
     winrt::fire_and_forget MainWindow::createAppraisal_Click(IInspectable const&, RoutedEventArgs const&) {
+        // load summarisation into dialog
         AppraisalSummaryBox().Text(winrt::to_hstring(m_summarisation));
-
-        AppraisalNameBox().Text(L"Enter appraisal name");
-        AppraisalNameBox().SelectionStart(AppraisalNameBox().Text().size());
-
-        AppraisalTagsBox().Text(L"Enter tags e.g. flu, pregnancy");
-        AppraisalNotesBox().Text(L"Enter appraisal notes");
 
         // bind the popup to the main window's visual tree
         AppraisalDialog().XamlRoot(this->Content().XamlRoot());
@@ -54,10 +51,12 @@ namespace winrt::ClinicalSummarisation::implementation {
         txtContent << L"Notes:\n" << std::wstring_view(notes) << L"\n";
 
         // save to json and user placed text file
-        std::wstring fileName = name.empty() ? L"Untitled_Appraisal" : std::wstring(name);
+        std::wstring appraisalName = name.empty() ? L"" : std::wstring(name);
 
         // set .txt filename to have the YYYY-MM-DD_Appraisal_ prefix
         std::wstring filePrefix = MainWindow::getFilenamePrefix(L"%Y-%m-%d_Appraisal_");
+
+        std::wstring fileName = filePrefix + appraisalName;
 
         co_await MainWindow::SaveTextToFileAsync(fileName, winrt::hstring(txtContent.str()));
         co_await MainWindow::SaveAppraisalToJsonAsync(name, summary, tags, notes);

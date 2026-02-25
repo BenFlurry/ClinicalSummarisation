@@ -16,10 +16,6 @@ namespace winrt::ClinicalSummarisation::implementation {
 
         InitializeComponent();
         MainWindow::InitialiseApplication();
-        MainWindow::loadMicrophones();
-        MainWindow::InitialiseDatabase();
-        MainWindow::InitialiseUI();
-        MainWindow::InitialiseTranscription();
     }
 }
 
