@@ -100,6 +100,8 @@ namespace winrt::ClinicalSummarisation::implementation {
 
         std::thread m_processingThread;
 
+        std::mutex m_stateMutex;
+
         // track background LLM loading
         std::future<void> m_summariserLoadFuture;
         std::atomic<bool> m_isSummariserReady{ false };

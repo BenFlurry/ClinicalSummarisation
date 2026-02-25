@@ -82,36 +82,4 @@ namespace winrt::ClinicalSummarisation::implementation {
             m_recorder->Stop();
         }
     }
-
-
-    // start doctor voice print 
-    void MainWindow::enrollVoice_Click(IInspectable const&, RoutedEventArgs const&) {
-        MainWindow::SetAppState(AppState::EnrollingVoice);
-
-        // check models have loaded
-        if (!m_engine || !m_engine->GetEncoder()) {
-            StatusText().Text(L"Models still loading...");
-            return;
-        }
-
-        // start encoding loop
-        m_doctorEmbedding.EnrollNewSpeakerAsync(m_engine->GetEncoder());
-    }
-
-    // finish doctor voice print
-    void MainWindow::finishEnrollment_Click(IInspectable const&, RoutedEventArgs const&) {
-        m_doctorEmbedding.FinishEnrollmentEarly();
-
-        MainWindow::SetAppState(AppState::WaitingRecording);
-        StatusText().Text(L"Voice Profile Saved Successfully.");
-        // cant inject doctors profile into encoding engine yet as processing wouldnt have finished
-    }
-
-    // cancel enrollment
-    void MainWindow::cancelEnrollment_Click(IInspectable const&, RoutedEventArgs const&) {
-        // abort
-        m_doctorEmbedding.CancelEnrollment();
-        MainWindow::SetAppState(AppState::WaitingRecording);
-        StatusText().Text(L"Voice Enrollment Cancelled.");
-    }
 }

@@ -7,20 +7,27 @@ using namespace winrt::Microsoft::UI::Xaml;
 namespace winrt::ClinicalSummarisation::implementation {
     // app state machine
     void MainWindow::SetAppState(AppState state) {
+		// ensure the state isnt updated at multiple places simultaneously
+		std::lock_guard<std::mutex> lock(m_stateMutex);
+
+        // enqueue to UI thread
         this->DispatcherQueue().TryEnqueue([this, state]() {
             // default back to nothing
+            RecordingView().Visibility(Visibility::Visible);
             AppraisalsView().Visibility(Visibility::Collapsed);
 
             StatusSpinner().Visibility(Visibility::Collapsed);
             ControlButtons().Visibility(Visibility::Collapsed);
             EnrollmentPanel().Visibility(Visibility::Collapsed);
-            enrollVoice_btn().IsEnabled(false);
+            enrollVoice_btn().IsEnabled(true);
             PostSummarisationButtons().Visibility(Visibility::Collapsed);
             MyTextBox().Visibility(Visibility::Collapsed);
             copy_btn().Visibility(Visibility::Collapsed);
 
             startRecording_btn().IsEnabled(false);
             stopRecording_btn().IsEnabled(false);
+            appraisalHistory_btn().Visibility(Visibility::Visible);
+            
 
             // process each state and what should or shouldn't be shown
             switch (state) {
@@ -47,6 +54,7 @@ namespace winrt::ClinicalSummarisation::implementation {
                 StatusSpinner().Visibility(Visibility::Visible);
                 ControlButtons().Visibility(Visibility::Visible);
                 stopRecording_btn().IsEnabled(true);
+                enrollVoice_btn().IsEnabled(false);
                 break;
 
             case AppState::IncompatibleDevice:
@@ -71,6 +79,7 @@ namespace winrt::ClinicalSummarisation::implementation {
                 break;
 
             case AppState::AppraisalsView:
+                RecordingView().Visibility(Visibility::Collapsed);
                 AppraisalsView().Visibility(Visibility::Visible);
                 break;
             }

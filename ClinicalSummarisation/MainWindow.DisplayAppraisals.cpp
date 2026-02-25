@@ -94,7 +94,8 @@ namespace winrt::ClinicalSummarisation::implementation {
     // renders appraisals grid
     void MainWindow::RenderAppraisalsList() {
         // clear the grid of appraisals
-        AppraisalsListContainer().Children().Clear();
+        AppraisalsListContainer().Items().Clear();
+
         std::wstring nameQuery = NameSearchBox().Text().c_str();
         // filtered items to be displayed
         std::vector<AppraisalItem> filtered;
@@ -120,11 +121,16 @@ namespace winrt::ClinicalSummarisation::implementation {
 
         // generate cards
         for (auto const& app : filtered) {
-            // 1. Create a Button Wrapper (Makes the item clickable)
+            // 1. Create a Button Wrapper
             Button itemButton;
-            itemButton.HorizontalAlignment(HorizontalAlignment::Stretch);
+
+            // --- GRID LAYOUT CHANGES ---
+            itemButton.Width(340);  // Fixed width makes them form columns
+            itemButton.Height(220); // Fixed height makes them uniform tiles
+            itemButton.Margin({ 0, 0, 12, 12 }); // Spacing between grid items
             itemButton.HorizontalContentAlignment(HorizontalAlignment::Stretch);
-            itemButton.Margin({ 0, 0, 0, 12 });
+            itemButton.VerticalContentAlignment(VerticalAlignment::Stretch); // Ensure content fills the tile
+            // ---------------------------
 
             // Remove default button styling
             itemButton.Background(Media::SolidColorBrush(winrt::Windows::UI::Colors::Transparent()));
@@ -141,27 +147,28 @@ namespace winrt::ClinicalSummarisation::implementation {
             card.Background(Application::Current().Resources().Lookup(winrt::box_value(L"LayerFillColorDefaultBrush")).as<Media::Brush>());
             card.CornerRadius({ 8, 8, 8, 8 });
 
-            // 3. TITLE: Just the Name
+            // Ensure the card fills the button area
+            card.HorizontalAlignment(HorizontalAlignment::Stretch);
+            card.VerticalAlignment(VerticalAlignment::Stretch);
+
+            // 3. TITLE
             TextBlock title;
             title.Text(app.Name);
             title.Style(Application::Current().Resources().Lookup(winrt::box_value(L"SubtitleTextBlockStyle")).as<Style>());
+            title.TextTrimming(TextTrimming::CharacterEllipsis); // Add ellipsis if name is too long
 
-            // 4. METADATA: Date | Tags
-            // Format the date
+            // 4. METADATA
             std::wstring_view dateView(app.Date);
             winrt::hstring dateStr = L"Date: ";
             winrt::hstring d = dateView.length() >= 10 ? winrt::hstring(dateView.substr(0, 10)) : app.Date;
             dateStr = dateStr + d;
 
-
             TextBlock date;
             date.Text(dateStr);
             date.FontSize(12);
-            // Make it gray to look like a subtitle
             date.Foreground(Media::SolidColorBrush(winrt::Windows::UI::Colors::Gray()));
-            date.Margin({ 0, 2, 0, 8 }); // Add a little space below it before the summary
+            date.Margin({ 0, 2, 0, 8 });
 
-            // Join the tags into a string (e.g. "Tag1, Tag2, Tag3")
             std::wstring tagsJoined = L"Tags: ";
             for (size_t i = 0; i < app.Tags.size(); ++i) {
                 tagsJoined += app.Tags[i];
@@ -169,17 +176,32 @@ namespace winrt::ClinicalSummarisation::implementation {
             }
             TextBlock tags;
             tags.Text(tagsJoined);
-            tags.TextWrapping(TextWrapping::Wrap);
-            tags.MaxLines(2); // Keep it compact
+            tags.TextWrapping(TextWrapping::NoWrap); // Keep tags on one line for cleaner grid
+            tags.TextTrimming(TextTrimming::CharacterEllipsis);
+            tags.FontSize(12);
+            tags.Foreground(Media::SolidColorBrush(winrt::Windows::UI::Colors::Gray()));
+            tags.Margin({ 0, 0, 0, 8 });
+
+            // 5. BODY: Summary
+            TextBlock summary;
+            summary.Text(app.Summary);
+            summary.TextWrapping(TextWrapping::Wrap);
+            summary.TextTrimming(TextTrimming::CharacterEllipsis); // Cut off text if it overflows the tile
+            // No MaxLines needed since the tile height will cut it off naturally, 
+            // but setting it helps performance
+            summary.MaxLines(5);
 
             // Add elements to card
             card.Children().Append(title);
             card.Children().Append(date);
             card.Children().Append(tags);
+            card.Children().Append(summary);
 
-            // Add card to button, and button to list
+            // Add card to button
             itemButton.Content(card);
-            AppraisalsListContainer().Children().Append(itemButton);
+
+            // CRITICAL CHANGE: Use .Items() instead of .Children() for GridView
+            AppraisalsListContainer().Items().Append(itemButton);
         }
     }
 
@@ -296,9 +318,13 @@ namespace winrt::ClinicalSummarisation::implementation {
         // Hide dialog first so it doesn't block the picker
 
         // Reuse your existing helper to pop the explorer window
-        co_await MainWindow::SaveTextToFileAsync(newName.c_str(), fileContent);
+        std::wstring filePrefix = MainWindow::getFilenamePrefix(L"%Y-%m-%d_Appraisal_");
+
+        std::wstring fileName = filePrefix + newName.c_str();
+        co_await MainWindow::SaveTextToFileAsync(fileName, fileContent);
         co_await MainWindow::SaveAppraisalToJsonAsync(newName, newSummary, newTagsRaw, newNotes);
     }
+
     void MainWindow::HistoryDialog_CancelClick(winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
         HistoryDialog().Hide();

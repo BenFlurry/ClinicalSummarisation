@@ -24,8 +24,7 @@ namespace winrt::ClinicalSummarisation::implementation {
     // creates and shows the appraisal dialog
     winrt::fire_and_forget MainWindow::createAppraisal_Click(IInspectable const&, RoutedEventArgs const&) {
         // load summarisation into dialog
-        AppraisalSummaryBox().Text(winrt::to_hstring(m_summarisation));
-
+        AppraisalSummaryBox().Text(MyTextBox().Text());
         // bind the popup to the main window's visual tree
         AppraisalDialog().XamlRoot(this->Content().XamlRoot());
 

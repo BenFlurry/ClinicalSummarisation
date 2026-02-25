@@ -9,6 +9,7 @@
     Title="Clinical Summarisation and Appraisal for Intel AIPC">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
         <Grid x:Name ="RecordingView" Background="Transparent" Visibility="VIsible">
 
             <StackPanel Orientation="Horizontal" 
@@ -35,10 +36,14 @@
                                     </ComboBox>
                                 </StackPanel>
 
+                                <MenuFlyoutSeparator/>
+
                                 <StackPanel Spacing="8">
-                                    <TextBlock Text="Appearance" FontWeight="SemiBold"/>
-                                    <ToggleSwitch Header="Dark Mode" IsOn="True"/>
+                                    <TextBlock Text="Voice Profile" FontWeight="SemiBold"/>
+                                    <Button x:Name="enrollVoice_btn" Content="Enroll Voice Detection" Click="enrollVoice_Click" HorizontalAlignment="Stretch"/>
                                 </StackPanel>
+
+                                <MenuFlyoutSeparator/>
 
                                 <StackPanel Spacing="8">
                                     <TextBlock Text="Summarisation/Appraisal Save Folder" FontWeight="SemiBold"/>
@@ -63,6 +68,12 @@
                         VerticalAlignment="Top" 
                         Margin="0,20,20,0" 
                         Spacing="10">
+
+                <Button x:Name="appraisalHistory_btn" 
+                    Content="Appraisals" 
+                    Click="appraisalHistory_Click" 
+                    IsEnabled="True"
+                    Height="40"/>
                 <Button Width="40" Height="40" 
                         Background="Transparent" 
                         ToolTipService.ToolTip="Information"
@@ -137,7 +148,6 @@
                 </StackPanel>
 
                 <StackPanel x:Name="ControlButtons" Orientation="Horizontal" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Center">
-                    <Button x:Name="enrollVoice_btn" Content="Enroll Voice Detection" Click="enrollVoice_Click" />
                     <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click"/>
                     <Button x:Name="stopRecording_btn" Content="Stop Recording" Click="stopRecording_Click" IsEnabled="False"/>
                 </StackPanel>
@@ -157,29 +167,9 @@
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel x:Name="PostSummarisationButtons" Orientation="Horizontal" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Right">
-                    <Button x:Name="appraisalHistory_btn" Content="Appraisal History" Click="appraisalHistory_Click" IsEnabled="True"/>
-                    <Button x:Name="createAppraisal_btn" Content="Create Appraisal" Click="createAppraisal_Click" IsEnabled="True"/>
-                    <Button x:Name="saveTranscript_btn" Content="Save Transcript" Click="saveTranscription_Click" IsEnabled="True"/>
-                    <Button x:Name="saveSummarisation_btn" Content="Save Summarisation" Click="saveSummarisation_Click" IsEnabled="True"/>
-                    <Button x:Name="copy_btn" 
-                            Click="copyButton_Click"
-                            Visibility="Collapsed"
-                            Padding="8,4,8,4"
-                            MinHeight="0"
-                            MinWidth="0">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <SymbolIcon Symbol="Copy" RenderTransformOrigin="0.5,0.5">
-                                <SymbolIcon.RenderTransform>
-                                    <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
-                                </SymbolIcon.RenderTransform>
-                            </SymbolIcon>
-                            <TextBlock x:Name="CopyButtonText" Text="Copy to Clipboard"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Spacing="10">
 
-                <TextBox x:Name="MyTextBox" 
+                    <TextBox x:Name="MyTextBox" 
                          Width="600" 
                          Height="300" 
                          TextWrapping="Wrap" 
@@ -187,6 +177,54 @@
                          PlaceholderText="Summarisation will appear here..."
                          Visibility="Collapsed"/>
 
+                    <Grid x:Name="PostSummarisationButtons" Width="600" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0" 
+                            x:Name="createAppraisal_btn" 
+                            Content="Create Appraisal" 
+                            Click="createAppraisal_Click" 
+                            Style="{StaticResource AccentButtonStyle}"
+                            IsEnabled="True"/>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="saveTranscript_btn" Click="saveTranscription_Click" ToolTipService.ToolTip="Save Transcript">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE74E;" FontSize="14"/>
+                                    <TextBlock Text="Transcript" FontSize="12"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="saveSummarisation_btn" Click="saveSummarisation_Click" ToolTipService.ToolTip="Save Summary">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE74E;" FontSize="14"/>
+                                    <TextBlock Text="Summary" FontSize="12"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="copy_btn" 
+                                Click="copyButton_Click"
+                                Visibility="Collapsed"
+                                Padding="8,4,8,4"
+                                MinHeight="0"
+                                MinWidth="0">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <SymbolIcon Symbol="Copy" RenderTransformOrigin="0.5,0.5">
+                                        <SymbolIcon.RenderTransform>
+                                            <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
+                                        </SymbolIcon.RenderTransform>
+                                    </SymbolIcon>
+                                    <TextBlock x:Name="CopyButtonText" Text="Copy" FontSize="12"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                </StackPanel>
             </StackPanel>
 
             <ContentDialog x:Name="AppraisalDialog"
@@ -241,12 +279,12 @@
 
             <StackPanel Grid.Row="0" Spacing="10" Padding="30,20,30,10">
                 <RelativePanel>
-                    <TextBlock Text="Past Appraisals" Style="{StaticResource TitleTextBlockStyle}" RelativePanel.AlignLeftWithPanel="True"/>
+                    <TextBlock Text="Appraisal History" Style="{StaticResource TitleTextBlockStyle}" RelativePanel.AlignLeftWithPanel="True"/>
                     <Button Content="Back to Recording" Click="CloseAppraisals_Click" RelativePanel.AlignRightWithPanel="True"/>
                 </RelativePanel>
 
                 <Grid ColumnDefinitions="*, Auto" Margin="0,10,0,0">
-                    <TextBox x:Name="NameSearchBox" PlaceholderText="Search by patient name..." 
+                    <TextBox x:Name="NameSearchBox" PlaceholderText="Search by Appraisal Name" 
                                  TextChanged="RenderAppraisalsList" Margin="0,0,10,0"/>
 
                     <Button Grid.Column="1" Content="Filter by Tags">
@@ -265,9 +303,13 @@
                 </Grid>
             </StackPanel>
 
-            <ScrollViewer Grid.Row="1" Padding="30,0,30,30">
-                <StackPanel x:Name="AppraisalsListContainer" Spacing="10"/>
-            </ScrollViewer>
+            <GridView Grid.Row="1" 
+              x:Name="AppraisalsListContainer" 
+              Padding="30,0,30,30" 
+              SelectionMode="None" 
+              HorizontalAlignment="Center"
+              IsItemClickEnabled="False">
+            </GridView>
         </Grid>
 
         <ContentDialog x:Name="HistoryDialog"
@@ -306,7 +348,7 @@
                     Click="HistoryDialog_SaveClick"/>
 
                     <Button Grid.Column="2" 
-                    Content="Cancel" 
+                    Content="Exit" 
                     HorizontalAlignment="Stretch" 
                     Click="HistoryDialog_CancelClick"/>
                 </Grid>
