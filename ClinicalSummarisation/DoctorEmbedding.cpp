@@ -137,7 +137,6 @@ bool DoctorEmbedding::IsProfileEnrolled() {
     std::ifstream file(path, std::ios::binary | std::ios::ate);
 
     // Check if it opened AND has a size greater than 0
-    return false;
     return file.is_open() && file.tellg() > 0;
 }
 

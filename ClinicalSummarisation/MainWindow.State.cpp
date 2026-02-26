@@ -47,18 +47,17 @@ namespace winrt::ClinicalSummarisation::implementation {
 
             case AppState::WaitingRecording:
                 StatusText().Text(L"Ready to Record");
-                enrollVoice_btn().IsEnabled(true);
                 ControlButtons().Visibility(Visibility::Visible);
+                enrollVoice_btn().IsEnabled(true);
                 startRecording_btn().IsEnabled(true);
                 break;
 
             case AppState::WaitingEnrollment:
                 StatusText().Text(L"Record doctors voice for transcription");
-                startRecording_btn().Visibility(Visibility::Collapsed);
-                stopRecording_btn().Visibility(Visibility::Collapsed);
+                ControlButtons().Visibility(Visibility::Collapsed);
                 initialEnrollVoice_btn().Visibility(Visibility::Visible);
                 initialEnrollVoice_btn().IsEnabled(true);
-
+                break;
 
             case AppState::Recording:
                 StatusText().Text(L"Listening to Conversation");
