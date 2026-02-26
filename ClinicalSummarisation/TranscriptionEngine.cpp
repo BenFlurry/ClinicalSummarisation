@@ -29,9 +29,14 @@ std::string TranscriptionEngine::ProcessLoop() {
     // Clear previous text
     m_fullTranscript.str("");
     m_isRunning = true;
+    m_isCancelled = false;
 
     while (m_isRunning) {
         AudioChunk audioChunk = m_bridge->Pop();
+
+        if (m_isCancelled) {
+            break;
+        }
 
 		float max_amp = 0.0f;
 		for (float s : audioChunk.audioData) max_amp = std::max(max_amp, std::abs(s));
@@ -50,6 +55,12 @@ std::string TranscriptionEngine::ProcessLoop() {
 		config.num_beams = 3;
 
 		auto result = m_pipeline->generate(audioChunk.audioData, config);
+
+        // as generation is a blocking operation, check again if cancelled
+        if (m_isCancelled) {
+            break;
+        }
+
 		std::vector<float>& sourceAudio = audioChunk.audioData;
 
 		for (const auto& transcribedChunk : *result.chunks) {
@@ -96,7 +107,19 @@ std::string TranscriptionEngine::ProcessLoop() {
 				m_isRunning = false;
 			}
 		}
-
     }
+    if (m_isCancelled) {
+        return "";
+    }
+
     return m_fullTranscript.str();
+}
+
+void TranscriptionEngine::Cancel() {
+    m_isCancelled = true;
+    m_isRunning = false;
+}
+
+bool TranscriptionEngine::IsCancelled() const {
+    return m_isCancelled;
 }

@@ -32,6 +32,11 @@ namespace winrt::ClinicalSummarisation::implementation {
             // this blocks until recording stops
             std::string finalTranscript = m_engine->ProcessLoop();
 
+            if (m_engine->IsCancelled()) { 
+                MainWindow::SetAppState(AppState::SummarisationComplete);
+                return; 
+            }
+
             // once recording has completed if med42 hasnt loaded
             if (!m_isSummariserReady) {
                 this->DispatcherQueue().TryEnqueue([this]() {
@@ -83,9 +88,20 @@ namespace winrt::ClinicalSummarisation::implementation {
         }
     }
 
-    void MainWindow::initialEnrollVoice_Click(IInspectable const&, RoutedEventArgs const&) {
-        MainWindow::SetAppState(AppState::EnrollingVoice);
-        // start encoding loop
-        m_doctorEmbedding.EnrollNewSpeakerAsync(m_engine->GetEncoder());
+    // when user cancels the recording mid-run
+    void MainWindow::cancelRecording_Click(IInspectable const&, RoutedEventArgs const&) {
+        // stop transcription processing
+        m_engine->Cancel();
+
+        // stop the recorder
+        if (m_recorder) {
+            m_recorder->Stop();
+        }
+
+        // 3. Optional: If your bridge has a Clear() or Flush() method, call it here 
+        // to empty any backed-up audio chunks so the next recording starts fresh.
+        // m_bridge->Clear();
+
+        // 4. Reset the UI to your default/idle state (replace AppState::Ready with whatever your idle state is named)
     }
 }

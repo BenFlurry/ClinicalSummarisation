@@ -17,15 +17,20 @@ namespace winrt::ClinicalSummarisation::implementation {
             AppraisalsView().Visibility(Visibility::Collapsed);
 
             StatusSpinner().Visibility(Visibility::Collapsed);
-            ControlButtons().Visibility(Visibility::Collapsed);
             EnrollmentPanel().Visibility(Visibility::Collapsed);
             enrollVoice_btn().IsEnabled(true);
             PostSummarisationButtons().Visibility(Visibility::Collapsed);
             MyTextBox().Visibility(Visibility::Collapsed);
             copy_btn().Visibility(Visibility::Collapsed);
 
-            startRecording_btn().IsEnabled(false);
-            stopRecording_btn().IsEnabled(false);
+            ControlButtons().Visibility(Visibility::Collapsed);
+            startRecording_btn().Visibility(Visibility::Collapsed);
+            stopRecording_btn().Visibility(Visibility::Collapsed);
+            cancelRecording_btn().Visibility(Visibility::Collapsed);
+            startRecording_btn().IsEnabled(true);
+            stopRecording_btn().IsEnabled(true);
+            cancelRecording_btn().IsEnabled(true);
+
 			initialEnrollVoice_btn().Visibility(Visibility::Collapsed);
             appraisalHistory_btn().Visibility(Visibility::Visible);
             appraisalHistory_btn().IsEnabled(true);
@@ -48,13 +53,12 @@ namespace winrt::ClinicalSummarisation::implementation {
             case AppState::WaitingRecording:
                 StatusText().Text(L"Ready to Record");
                 ControlButtons().Visibility(Visibility::Visible);
+                startRecording_btn().Visibility(Visibility::Visible);
                 enrollVoice_btn().IsEnabled(true);
-                startRecording_btn().IsEnabled(true);
                 break;
 
             case AppState::WaitingEnrollment:
                 StatusText().Text(L"Record doctors voice for transcription");
-                ControlButtons().Visibility(Visibility::Collapsed);
                 initialEnrollVoice_btn().Visibility(Visibility::Visible);
                 initialEnrollVoice_btn().IsEnabled(true);
                 break;
@@ -63,7 +67,8 @@ namespace winrt::ClinicalSummarisation::implementation {
                 StatusText().Text(L"Listening to Conversation");
                 StatusSpinner().Visibility(Visibility::Visible);
                 ControlButtons().Visibility(Visibility::Visible);
-                stopRecording_btn().IsEnabled(true);
+                stopRecording_btn().Visibility(Visibility::Visible);
+                cancelRecording_btn().Visibility(Visibility::Visible);
                 enrollVoice_btn().IsEnabled(false);
                 appraisalHistory_btn().IsEnabled(false);
                 break;
@@ -75,18 +80,16 @@ namespace winrt::ClinicalSummarisation::implementation {
             case AppState::GeneratingSummarisation:
                 StatusText().Text(L"Generating Summarisation");
                 StatusSpinner().Visibility(Visibility::Visible);
-                startRecording_btn().IsEnabled(false);
-                stopRecording_btn().IsEnabled(false);
                 break;
 
             case AppState::SummarisationComplete:
                 StatusText().Text(L"Clinical Summarisation");
                 PostSummarisationButtons().Visibility(Visibility::Visible);
                 ControlButtons().Visibility(Visibility::Visible);
+                startRecording_btn().Visibility(Visibility::Visible);
                 MyTextBox().Visibility(Visibility::Visible);
                 copy_btn().Visibility(Visibility::Visible);
                 saveTranscript_btn().Visibility(Visibility::Visible);
-                startRecording_btn().IsEnabled(true);
                 break;
 
             }

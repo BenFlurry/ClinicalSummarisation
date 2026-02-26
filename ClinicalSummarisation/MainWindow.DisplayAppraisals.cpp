@@ -329,4 +329,52 @@ namespace winrt::ClinicalSummarisation::implementation {
     {
         HistoryDialog().Hide();
     }
+
+    // Deletes the appraisal from memory and the JSON file
+    winrt::fire_and_forget MainWindow::HistoryDialog_DeleteClick(winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&) {
+
+        // Hide the dialog immediately for better UX
+        HistoryDialog().Hide();
+
+        // Convert the stored original name back to an hstring to use as our search key
+        winrt::hstring targetName = winrt::to_hstring(m_originalAppraisalName);
+
+        // 1. Remove from the internal memory list (m_allAppraisals)
+        auto it = std::remove_if(m_allAppraisals.begin(), m_allAppraisals.end(),
+            [&](const AppraisalItem& app) { return app.Name == targetName; });
+
+        if (it != m_allAppraisals.end()) {
+            m_allAppraisals.erase(it, m_allAppraisals.end());
+        }
+
+        // 2. Remove from the JSON file on disk
+		using namespace winrt::Windows::Storage;
+		using namespace winrt::Windows::Data::Json;
+
+		StorageFolder localFolder = ApplicationData::Current().LocalFolder();
+
+		// Safely check if the file exists before trying to read it
+		IStorageItem item = co_await localFolder.TryGetItemAsync(L"appraisals.json");
+
+		if (item) {
+			StorageFile file = item.as<StorageFile>();
+			winrt::hstring jsonString = co_await FileIO::ReadTextAsync(file);
+			JsonObject rootObject;
+
+			// Parse the existing JSON
+			if (JsonObject::TryParse(jsonString, rootObject)) {
+
+				// If the key exists, remove it and save the file
+				if (rootObject.HasKey(targetName)) {
+					rootObject.Remove(targetName);
+
+					// Overwrite the file with the new, smaller JSON string
+					co_await FileIO::WriteTextAsync(file, rootObject.Stringify());
+				}
+			}
+		}
+
+        // 3. Re-render the UI grid so the deleted item disappears
+        MainWindow::RenderAppraisalsList();
+    }
 }
