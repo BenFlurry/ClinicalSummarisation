@@ -8,7 +8,7 @@ namespace winrt::ClinicalSummarisation::implementation {
     // app state machine
     void MainWindow::SetAppState(AppState newState) {
 		// ensure the state isnt updated at multiple places simultaneously
-		std::lock_guard<std::mutex> lock(m_stateMutex);
+		//std::lock_guard<std::mutex> lock(m_stateMutex);
 
         // enqueue to UI thread
         this->DispatcherQueue().TryEnqueue([this, newState]() {
@@ -54,6 +54,8 @@ namespace winrt::ClinicalSummarisation::implementation {
 
             case AppState::WaitingEnrollment:
                 StatusText().Text(L"Record doctors voice for transcription");
+                startRecording_btn().Visibility(Visibility::Collapsed);
+                stopRecording_btn().Visibility(Visibility::Collapsed);
                 initialEnrollVoice_btn().Visibility(Visibility::Visible);
                 initialEnrollVoice_btn().IsEnabled(true);
 

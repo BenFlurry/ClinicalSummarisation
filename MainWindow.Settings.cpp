@@ -42,10 +42,10 @@ namespace winrt::ClinicalSummarisation::implementation {
         m_doctorEmbedding.CancelEnrollment();
         // if we dont have a profile and the enrollment cancelled then we wait enrollment
         if (m_doctorEmbedding.IsProfileEnrolled()) {
-			MainWindow::SetAppState(AppState::WaitingEnrollment);
+			MainWindow::SetAppState(AppState::WaitingRecording);
         }
         else {
-			MainWindow::SetAppState(AppState::WaitingRecording);
+			MainWindow::SetAppState(AppState::WaitingEnrollment);
         }
     }
 

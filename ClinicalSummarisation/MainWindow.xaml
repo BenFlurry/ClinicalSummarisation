@@ -147,7 +147,7 @@
                                   Visibility="Collapsed"/>
                 </StackPanel>
 
-                <Button x:Name="initialEnrollVoice_btn" Content="Enroll voice" Click="initialEnrollVoice_Click" IsEnabled="False" Visibility="Collapsed"/>
+                <Button x:Name="initialEnrollVoice_btn" Content="Enroll voice" Click="enrollVoice_Click" IsEnabled="False" Visibility="Collapsed"/>
 
                 <StackPanel x:Name="ControlButtons" Orientation="Horizontal" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Center">
                     <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click"/>
