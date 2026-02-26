@@ -21,6 +21,34 @@ using namespace winrt;
 using namespace winrt::Microsoft::UI::Xaml;
 
 namespace winrt::ClinicalSummarisation::implementation {
+    // start doctor voice print 
+    void MainWindow::enrollVoice_Click(IInspectable const&, RoutedEventArgs const&) {
+        MainWindow::SetAppState(AppState::EnrollingVoice);
+        // start encoding loop
+        m_doctorEmbedding.EnrollNewSpeakerAsync(m_engine->GetEncoder());
+    }
+
+    // finish doctor voice print
+    void MainWindow::finishEnrollment_Click(IInspectable const&, RoutedEventArgs const&) {
+        m_doctorEmbedding.FinishEnrollmentEarly();
+
+        MainWindow::SetAppState(AppState::WaitingRecording);
+        // cant inject doctors profile into encoding engine yet as processing wouldnt have finished
+    }
+
+    // cancel enrollment
+    void MainWindow::cancelEnrollment_Click(IInspectable const&, RoutedEventArgs const&) {
+        // abort
+        m_doctorEmbedding.CancelEnrollment();
+        // if we dont have a profile and the enrollment cancelled then we wait enrollment
+        if (m_doctorEmbedding.IsProfileEnrolled()) {
+			MainWindow::SetAppState(AppState::WaitingEnrollment);
+        }
+        else {
+			MainWindow::SetAppState(AppState::WaitingRecording);
+        }
+    }
+
     // get all possible microphones
     winrt::fire_and_forget MainWindow::loadMicrophones() {
         auto devices = co_await winrt::Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(

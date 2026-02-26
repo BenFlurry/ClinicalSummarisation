@@ -27,6 +27,7 @@ namespace winrt::ClinicalSummarisation::implementation {
         Loading,
         EnrollingVoice,
         WaitingRecording,
+        WaitingEnrollment,
         Recording,
         IncompatibleDevice,
         GeneratingSummarisation,
@@ -51,6 +52,7 @@ namespace winrt::ClinicalSummarisation::implementation {
         void stopRecording_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void copyButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void enrollVoice_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
+        void initialEnrollVoice_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void finishEnrollment_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void cancelEnrollment_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void appraisalDialog_CancelClick(winrt::Windows::Foundation::IInspectable const& sender, winrt::Microsoft::UI::Xaml::RoutedEventArgs const& args);        
@@ -87,6 +89,8 @@ namespace winrt::ClinicalSummarisation::implementation {
         winrt::fire_and_forget loadMicrophones();
 
         winrt::fire_and_forget LoadAppraisalsAsync();
+
+        bool m_isDoctorEnrolled = false;
 
         std::string m_originalAppraisalName;
 

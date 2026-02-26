@@ -82,4 +82,10 @@ namespace winrt::ClinicalSummarisation::implementation {
             m_recorder->Stop();
         }
     }
+
+    void MainWindow::initialEnrollVoice_Click(IInspectable const&, RoutedEventArgs const&) {
+        MainWindow::SetAppState(AppState::EnrollingVoice);
+        // start encoding loop
+        m_doctorEmbedding.EnrollNewSpeakerAsync(m_engine->GetEncoder());
+    }
 }

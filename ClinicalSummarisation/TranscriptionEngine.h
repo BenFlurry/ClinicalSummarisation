@@ -25,6 +25,7 @@ private:
 
 	ov::genai::WhisperPipeline* m_pipeline = nullptr;
 	std::vector<float> m_doctorProfile;
+	
 
 };
 

@@ -14,6 +14,7 @@ public:
     void CancelEnrollment();
 
     std::vector<float> getSpeachEmbedding();
+    bool IsProfileEnrolled();
 
 private:
     std::vector<float> m_speachEmbedding;

@@ -6,12 +6,12 @@ using namespace winrt::Microsoft::UI::Xaml;
 
 namespace winrt::ClinicalSummarisation::implementation {
     // app state machine
-    void MainWindow::SetAppState(AppState state) {
+    void MainWindow::SetAppState(AppState newState) {
 		// ensure the state isnt updated at multiple places simultaneously
 		std::lock_guard<std::mutex> lock(m_stateMutex);
 
         // enqueue to UI thread
-        this->DispatcherQueue().TryEnqueue([this, state]() {
+        this->DispatcherQueue().TryEnqueue([this, newState]() {
             // default back to nothing
             RecordingView().Visibility(Visibility::Visible);
             AppraisalsView().Visibility(Visibility::Collapsed);
@@ -26,18 +26,21 @@ namespace winrt::ClinicalSummarisation::implementation {
 
             startRecording_btn().IsEnabled(false);
             stopRecording_btn().IsEnabled(false);
+			initialEnrollVoice_btn().Visibility(Visibility::Collapsed);
             appraisalHistory_btn().Visibility(Visibility::Visible);
-            
+            appraisalHistory_btn().IsEnabled(true);
 
             // process each state and what should or shouldn't be shown
-            switch (state) {
+            switch (newState) {
             case AppState::Loading:
                 StatusText().Text(L"Loading Application");
                 StatusSpinner().Visibility(Visibility::Visible);
+                appraisalHistory_btn().IsEnabled(false);
+                enrollVoice_btn().IsEnabled(false);
                 break;
 
             case AppState::EnrollingVoice:
-                StatusText().Text(L"Recording Voice Profile...");
+                StatusText().Text(L"Recording Voice Profile");
                 StatusSpinner().Visibility(Visibility::Visible);
                 EnrollmentPanel().Visibility(Visibility::Visible);
                 break;
@@ -49,12 +52,19 @@ namespace winrt::ClinicalSummarisation::implementation {
                 startRecording_btn().IsEnabled(true);
                 break;
 
+            case AppState::WaitingEnrollment:
+                StatusText().Text(L"Record doctors voice for transcription");
+                initialEnrollVoice_btn().Visibility(Visibility::Visible);
+                initialEnrollVoice_btn().IsEnabled(true);
+
+
             case AppState::Recording:
                 StatusText().Text(L"Listening to Conversation");
                 StatusSpinner().Visibility(Visibility::Visible);
                 ControlButtons().Visibility(Visibility::Visible);
                 stopRecording_btn().IsEnabled(true);
                 enrollVoice_btn().IsEnabled(false);
+                appraisalHistory_btn().IsEnabled(false);
                 break;
 
             case AppState::IncompatibleDevice:
@@ -78,12 +88,7 @@ namespace winrt::ClinicalSummarisation::implementation {
                 startRecording_btn().IsEnabled(true);
                 break;
 
-            case AppState::AppraisalsView:
-                RecordingView().Visibility(Visibility::Collapsed);
-                AppraisalsView().Visibility(Visibility::Visible);
-                break;
             }
-
 		});
     }
 }

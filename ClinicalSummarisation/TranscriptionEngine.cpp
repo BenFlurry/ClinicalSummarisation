@@ -77,23 +77,16 @@ std::string TranscriptionEngine::ProcessLoop() {
 				
 				std::vector<float> currentEmbedding = m_speakerEncoder->GetEmbedding(clip);
 
-				if (m_doctorProfile.empty()) {
-					// first person to speak is assumed to be the Doctor
-					m_doctorProfile = currentEmbedding;
+				// compare with doctor
+				float score = SpeakerEncoder::CosineSimilarity(m_doctorProfile, currentEmbedding);
+				std::string scoreStr = std::to_string(score).substr(0, 4); // "0.85"
+
+				// usually 0.5 - 0.7 for ECAPA-TDNN
+				if (score > 0.8f) {
 					speakerLabel = "Doctor";
 				}
 				else {
-					// compare with doctor
-					float score = SpeakerEncoder::CosineSimilarity(m_doctorProfile, currentEmbedding);
-					std::string scoreStr = std::to_string(score).substr(0, 4); // "0.85"
-
-					// usually 0.5 - 0.7 for ECAPA-TDNN
-					if (score > 0.8f) {
-						speakerLabel = "Doctor";
-					}
-					else {
-						speakerLabel = "Patient";
-					}
+					speakerLabel = "Patient";
 				}
 			}
 

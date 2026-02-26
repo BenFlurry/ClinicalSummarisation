@@ -77,8 +77,15 @@ namespace winrt::ClinicalSummarisation::implementation {
             m_engine = new TranscriptionEngine(&m_bridge);
             m_engine->InitialiseModel();
 
+            m_isDoctorEnrolled = m_doctorEmbedding.IsProfileEnrolled();
+
+            if (m_isDoctorEnrolled) {
+				MainWindow::SetAppState(AppState::WaitingRecording);
+            }
+            else {
+                MainWindow::SetAppState(AppState::WaitingEnrollment);
+            }
             // once loaded, we can allow the user to record
-            MainWindow::SetAppState(AppState::WaitingRecording);
 
             // start loading the heavy med42 model in parallel
             m_summariserLoadFuture = std::async(std::launch::async, [this]() {

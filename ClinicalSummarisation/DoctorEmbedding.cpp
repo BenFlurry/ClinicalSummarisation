@@ -130,7 +130,18 @@ void DoctorEmbedding::SaveToDisk(const std::vector<float>& embedding) {
     }
 }
 
-// load doctor embedding from disk
+bool DoctorEmbedding::IsProfileEnrolled() {
+    std::string path = DoctorEmbedding::getFilePath();
+
+    // Open the file and jump to the end (std::ios::ate)
+    std::ifstream file(path, std::ios::binary | std::ios::ate);
+
+    // Check if it opened AND has a size greater than 0
+    return false;
+    return file.is_open() && file.tellg() > 0;
+}
+
+// load doctor embedding from disk, returns an empty vector if file doesnt exist or empty
 std::vector<float> DoctorEmbedding::LoadFromDisk() {
     std::ifstream file(getFilePath(), std::ios::binary | std::ios::ate);
     if (!file.is_open()) return {};
