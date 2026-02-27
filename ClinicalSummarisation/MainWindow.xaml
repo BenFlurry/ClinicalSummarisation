@@ -9,240 +9,228 @@
     Title="Clinical Summarisation and Appraisal for Intel AIPC">
 
     <Window.SystemBackdrop>
-        <MicaBackdrop Kind="BaseAlt" />
+        <MicaBackdrop />
     </Window.SystemBackdrop>
 
-    <Grid RequestedTheme="Dark">
-        <Grid.Background>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1" Opacity="0.85">
-                <GradientStop Color="#0B0E14" Offset="0.0"/>
-                <GradientStop Color="#121A30" Offset="0.4"/>
-                <GradientStop Color="#1C0D28" Offset="0.8"/>
-                <GradientStop Color="#082A3A" Offset="1.0"/>
-            </LinearGradientBrush>
-        </Grid.Background>
-
+    <Grid RequestedTheme="Light">
         <Grid.Resources>
             <ResourceDictionary>
                 <ResourceDictionary.ThemeDictionaries>
-                    <ResourceDictionary x:Key="Dark">
-                        <Color x:Key="SystemAccentColor">#00E5FF</Color>
-                        <Color x:Key="SystemAccentColorLight1">#4DFFFF</Color>
-                        <Color x:Key="SystemAccentColorLight2">#80FFFF</Color>
-                        <Color x:Key="SystemAccentColorLight3">#B3FFFF</Color>
+                    <ResourceDictionary x:Key="Light">
+                        <Color x:Key="SystemAccentColor">#0B3B60</Color>
+                        <Color x:Key="SystemAccentColorDark1">#082A45</Color>
+                        <Color x:Key="SystemAccentColorLight1">#115A91</Color>
 
-                        <SolidColorBrush x:Key="ButtonBackground" Color="#1AFFFFFF"/>
-                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#33FFFFFF"/>
-                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#4DFFFFFF"/>
-                        <SolidColorBrush x:Key="ButtonBorderBrush" Color="#33FFFFFF"/>
+                        <SolidColorBrush x:Key="ButtonBackground" Color="#00FFFFFF"/>
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#1A000000"/>
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#33000000"/>
+                        <SolidColorBrush x:Key="ButtonBorderBrush" Color="#00FFFFFF"/>
 
-                        <CornerRadius x:Key="ControlCornerRadius">24</CornerRadius>
+                        <CornerRadius x:Key="ControlCornerRadius">20</CornerRadius>
                         <CornerRadius x:Key="OverlayCornerRadius">16</CornerRadius>
                     </ResourceDictionary>
                 </ResourceDictionary.ThemeDictionaries>
 
-                <LinearGradientBrush x:Key="NeonAccentBrush" StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#00B4D8" Offset="0.0"/>
-                    <GradientStop Color="#00E5FF" Offset="1.0"/>
+                <LinearGradientBrush x:Key="GradientAccentBrush" StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#4FACFE" Offset="0.0"/>
+                    <GradientStop Color="#9B51E0" Offset="1.0"/>
                 </LinearGradientBrush>
+
+                <AcrylicBrush x:Key="InAppBlurBrush" 
+                              TintColor="#F8FAFC" 
+                              TintOpacity="0.55" 
+                              FallbackColor="#F8FAFC" />
             </ResourceDictionary>
         </Grid.Resources>
 
+        <Grid>
+            <Ellipse Width="1200" Height="1200" Fill="#A1C4FD" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-300,-400,0,0"/>
+            <Ellipse Width="1000" Height="1000" Fill="#E0C3FC" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-200,-300"/>
+            <Ellipse Width="1100" Height="800" Fill="#C2E9FB" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.8"/>
+        </Grid>
+
+        <Rectangle Fill="{StaticResource InAppBlurBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+
         <Grid x:Name ="RecordingView" Background="Transparent" Visibility="Visible">
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="24,24,0,0">
-                <Border Background="#1AFFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="25" Width="50" Height="50">
-                    <Button x:Name="Setting_btn" 
-                            Width="50" Height="50" 
-                            Background="Transparent" 
-                            BorderThickness="0" 
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            ToolTipService.ToolTip="Settings"
-                            CornerRadius="25">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-                        <SymbolIcon Symbol="Setting" Foreground="#00E5FF"/>
+            <Grid Grid.Row="0" Margin="16,16,16,0">
 
+                <Border HorizontalAlignment="Left" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1" CornerRadius="24" Width="48" Height="48">
+                    <Button x:Name="Setting_btn" Width="46" Height="46" Background="Transparent" BorderThickness="0" 
+                            HorizontalAlignment="Center" VerticalAlignment="Center" ToolTipService.ToolTip="Settings" CornerRadius="23">
+                        <SymbolIcon Symbol="Setting" Foreground="#0B3B60"/>
                         <Button.Flyout>
                             <Flyout Placement="BottomEdgeAlignedLeft">
                                 <StackPanel Width="280" Spacing="16">
-                                    <TextBlock Text="SYSTEM CONFIGURATION" FontWeight="Black" FontSize="12" CharacterSpacing="100" Foreground="#00E5FF"/>
+                                    <TextBlock Text="System Configuration" FontWeight="SemiBold" FontSize="14" Foreground="#0B3B60"/>
                                     <StackPanel Spacing="8">
-                                        <TextBlock Text="Microphone Input" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Microphone Input" FontWeight="SemiBold" Foreground="#1E293B"/>
                                         <ComboBox SelectedIndex="0" HorizontalAlignment="Stretch" Name="MicComboBox" CornerRadius="8"/>
                                     </StackPanel>
                                     <MenuFlyoutSeparator/>
                                     <StackPanel Spacing="8">
-                                        <TextBlock Text="Voice Profile" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Voice Profile" FontWeight="SemiBold" Foreground="#1E293B"/>
                                         <Button x:Name="enrollVoice_btn" Content="Enroll Voice Detection" Click="enrollVoice_Click" HorizontalAlignment="Stretch" CornerRadius="8"/>
                                     </StackPanel>
                                     <MenuFlyoutSeparator/>
                                     <StackPanel Spacing="8">
-                                        <TextBlock Text="Summarisation Save Folder" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Summarisation Save Folder" FontWeight="SemiBold" Foreground="#1E293B"/>
                                         <Button x:Name="changeSaveLocation_btn" Content="Change Location" Click="changeSaveLocation_Click" IsEnabled="True" CornerRadius="8"/>
                                     </StackPanel>
                                     <MenuFlyoutSeparator/>
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="AI Model Specs" FontWeight="SemiBold"/>
-                                        <TextBlock Text="Whisper: Quantized (Int8)" Foreground="#999999" FontSize="12"/>
-                                        <TextBlock Text="Med42: 4-bit (OpenVINO)" Foreground="#999999" FontSize="12"/>
+                                        <TextBlock Text="AI Model Specs" FontWeight="SemiBold" Foreground="#1E293B"/>
+                                        <TextBlock Text="Whisper: Quantized (Int8)" Foreground="#64748B" FontSize="12"/>
+                                        <TextBlock Text="Med42: 4-bit (OpenVINO)" Foreground="#64748B" FontSize="12"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Flyout>
                         </Button.Flyout>
                     </Button>
                 </Border>
-            </StackPanel>
 
-            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,24,24,0"
-                    Background="#1AFFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="25" Padding="4">
-                <StackPanel Orientation="Horizontal" Spacing="4">
+                <Border HorizontalAlignment="Right" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1" CornerRadius="24" Padding="4">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                        <Button x:Name="appraisalHistory_btn" Content="Appraisals" Click="appraisalHistory_Click" IsEnabled="True"
+                                Height="40" Padding="16,0" CornerRadius="20" Background="Transparent" BorderThickness="0" Foreground="#0B3B60" FontWeight="SemiBold"/>
 
-                    <Button x:Name="appraisalHistory_btn" 
-                        Content="Appraisals" 
-                        Click="appraisalHistory_Click" 
-                        IsEnabled="True"
-                        Height="42"
-                        CornerRadius="20"
-                        Background="Transparent"
-                        BorderThickness="0"/>
+                        <Button x:Name="Info_btn" Width="40" Height="40" Background="Transparent" ToolTipService.ToolTip="Information"
+                                BorderThickness="0" CornerRadius="20">
+                            <FontIcon Glyph="&#xE946;" FontSize="16" Foreground="#0B3B60"/>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedRight">
+                                    <StackPanel MaxWidth="300" Spacing="5">
+                                        <TextBlock Text="Disclaimer" FontWeight="SemiBold" FontSize="14" Foreground="#0B3B60"/>
+                                        <TextBlock TextWrapping="Wrap" Foreground="#475569">
+                                            This application was created as part of a final year project with UCL in partnership with Intel. Completely offline and powered by OpenVINO.
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
 
-                    <Button x:Name="Info_btn" 
-                            Width="42" Height="42" 
-                            Background="Transparent" 
-                            ToolTipService.ToolTip="Information"
-                            BorderThickness="0"
-                            CornerRadius="21">
-                        <FontIcon Glyph="&#xE946;" FontSize="18" Foreground="#00E5FF"/>
-                        <Button.Flyout>
-                            <Flyout Placement="BottomEdgeAlignedRight">
-                                <StackPanel MaxWidth="300" Spacing="5">
-                                    <TextBlock Text="DISCLAIMER" FontWeight="Black" FontSize="12" CharacterSpacing="100" Foreground="#00E5FF"/>
-                                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC">
-                                        This application was created as part of a final year project with UCL in partnership with Intel. Completely offline and powered by OpenVINO.
-                                    </TextBlock>
-                                </StackPanel>
-                            </Flyout>
-                        </Button.Flyout>
-                    </Button>
-
-                    <Button x:Name="Help_btn" 
-                            Width="42" Height="42" 
-                            Background="Transparent" 
-                            BorderThickness="0"
-                            CornerRadius="21">
-                        <Button.Content>
-                            <FontIcon Glyph="&#xE897;" FontFamily="Segoe MDL2 Assets" Foreground="#00E5FF"/>
-                        </Button.Content>
-                        <Button.Flyout>
-                            <Flyout Placement="BottomEdgeAlignedRight">
-                                <StackPanel MaxWidth="300" Spacing="10">
-                                    <TextBlock Text="REQUIREMENTS &amp; HELP" FontWeight="Black" FontSize="12" CharacterSpacing="100" Foreground="#00E5FF"/>
-                                    <TextBlock TextWrapping="Wrap" Foreground="#CCCCCC">
-                                        Requires Intel AIPC with minimum 32GB RAM.
-                                    </TextBlock>
-                                </StackPanel>
-                            </Flyout>
-                        </Button.Flyout>
-                    </Button>
-
-                </StackPanel>
-            </Border>
-
-            <Border HorizontalAlignment="Center" VerticalAlignment="Center" 
-                    Background="#10FFFFFF" BorderBrush="#20FFFFFF" BorderThickness="1" 
-                    CornerRadius="32" Padding="48" Margin="40">
-
-                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
-                        <ProgressRing x:Name="StatusSpinner" 
-                                      IsActive="True" 
-                                      Width="24" Height="24" 
-                                      Visibility="Collapsed"
-                                      Foreground="#00E5FF"/>
-                        <TextBlock x:Name="StatusText" 
-                                   Text="AWAITING INPUT..." 
-                                   FontWeight="Black" FontSize="16" CharacterSpacing="150"
-                                   TextAlignment="Center"
-                                   Foreground="#00E5FF"/>
+                        <Button x:Name="Help_btn" Width="40" Height="40" Background="Transparent" BorderThickness="0" CornerRadius="20">
+                            <Button.Content>
+                                <FontIcon Glyph="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="#0B3B60"/>
+                            </Button.Content>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedRight">
+                                    <StackPanel MaxWidth="300" Spacing="10">
+                                        <TextBlock Text="Requirements &amp; Help" FontWeight="SemiBold" FontSize="14" Foreground="#0B3B60"/>
+                                        <TextBlock TextWrapping="Wrap" Foreground="#475569">
+                                            Requires Intel AIPC with minimum 32GB RAM.
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
                     </StackPanel>
+                </Border>
+            </Grid>
 
-                    <Button x:Name="initialEnrollVoice_btn" Content="ENROLL VOICE" Click="enrollVoice_Click" IsEnabled="False" Visibility="Collapsed" CornerRadius="20" Padding="24,10"/>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,8,0,0">
+                <Border HorizontalAlignment="Center" VerticalAlignment="Stretch" 
+                        Background="Transparent" BorderThickness="0" 
+                        CornerRadius="24" Padding="24" Margin="12">
 
-                    <Border Background="#1A000000" BorderBrush="#20FFFFFF" BorderThickness="1" CornerRadius="28" Padding="8" x:Name="ControlButtons" Visibility="Collapsed">
-                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                            <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click" Height="44" Padding="24,0" CornerRadius="22" Background="{StaticResource NeonAccentBrush}" Foreground="Black" FontWeight="Bold"/>
-                            <Button x:Name="stopRecording_btn" Content="Stop Recording" Click="stopRecording_Click" IsEnabled="False" Height="44" Padding="24,0" CornerRadius="22"/>
-                            <Button x:Name="cancelRecording_btn" Content="Cancel" Click="cancelRecording_Click" IsEnabled="False" Height="44" Padding="24,0" CornerRadius="22"/>
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Top" Spacing="16" Margin="0,40,0,0">
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16">
+                            <TextBlock x:Name="StatusText" 
+                                       Text="Application loading..." 
+                                       FontWeight="Bold" FontSize="32"
+                                       TextAlignment="Center"
+                                       Foreground="#0B3B60"/>
+                            <ProgressRing x:Name="StatusSpinner" 
+                                          IsActive="True" 
+                                          Width="36" Height="36" 
+                                          Visibility="Collapsed"
+                                          Foreground="#0B3B60"/>
                         </StackPanel>
-                    </Border>
 
-                    <StackPanel x:Name="EnrollmentPanel" Orientation="Vertical" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Center" MaxWidth="600">
-                        <TextBlock Text="Please read the following text naturally:" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#E0E0E0"/>
-                        <Border Background="#2000E5FF" BorderBrush="#4000E5FF" BorderThickness="1" Padding="24" CornerRadius="16">
-                            <TextBlock Text="&#x22;I am recording my voice profile for the clinical summarisation system. This will allow the application to recognize my voice and accurately separate it from the patient's voice during our consultation. I am speaking clearly and at a normal volume.&#x22;" 
-                           TextWrapping="Wrap" FontStyle="Italic" TextAlignment="Center" FontSize="16" Foreground="#FFFFFF"/>
-                        </Border>
-                        <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
-                            <Button x:Name="finishEnrollment_btn" Content="Finish Calibration" Click="finishEnrollment_Click" Background="{StaticResource NeonAccentBrush}" Foreground="Black" FontWeight="Bold" CornerRadius="20" Padding="24,10"/>
-                            <Button x:Name="cancelEnrollment_btn" Content="Cancel" Click="cancelEnrollment_Click" CornerRadius="20" Padding="24,10"/>
+                        <Button x:Name="initialEnrollVoice_btn" Content="Enroll Voice" Click="enrollVoice_Click" IsEnabled="False" Visibility="Collapsed" CornerRadius="20" Padding="24,10"/>
+
+                        <StackPanel x:Name="ControlButtons" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center" Visibility="Collapsed"
+                                    Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1" CornerRadius="28" Padding="6">
+
+                            <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click" Height="44" Padding="24,0" CornerRadius="22" Background="{StaticResource GradientAccentBrush}" Foreground="White" FontWeight="SemiBold" BorderThickness="0"/>
+                            <Button x:Name="stopRecording_btn" Content="Stop Recording" Click="stopRecording_Click" IsEnabled="False" Height="44" Padding="24,0" CornerRadius="22" Background="Transparent" Foreground="#0B3B60" BorderThickness="0"/>
+                            <Button x:Name="cancelRecording_btn" Content="Cancel" Click="cancelRecording_Click" IsEnabled="False" Height="44" Padding="24,0" CornerRadius="22" Background="Transparent" Foreground="#0B3B60" BorderThickness="0"/>
                         </StackPanel>
-                    </StackPanel>
 
-                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Spacing="16">
-                        <TextBox x:Name="MyTextBox" 
-                             Width="640" Height="320" 
-                             TextWrapping="Wrap" AcceptsReturn="True" 
-                             PlaceholderText="AI Summarisation output..."
-                             Visibility="Collapsed"
-                             Background="#1A000000"
-                             BorderBrush="#33FFFFFF"
-                             CornerRadius="16"
-                             Padding="16"/>
-
-                        <Grid x:Name="PostSummarisationButtons" Width="640" Visibility="Collapsed">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Button Grid.Column="0" 
-                                x:Name="createAppraisal_btn" 
-                                Content="Generate Appraisal" 
-                                Click="createAppraisal_Click" 
-                                Background="{StaticResource NeonAccentBrush}"
-                                Foreground="Black" FontWeight="Bold"
-                                CornerRadius="20" Padding="24,10"
-                                IsEnabled="True"/>
-
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
-                                <Button x:Name="saveTranscript_btn" Click="saveTranscription_Click" ToolTipService.ToolTip="Save Transcript" CornerRadius="20" Height="40">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <FontIcon Glyph="&#xE74E;" FontSize="14" Foreground="#00E5FF"/>
-                                        <TextBlock Text="Transcript" FontSize="12" FontWeight="SemiBold"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button x:Name="saveSummarisation_btn" Click="saveSummarisation_Click" ToolTipService.ToolTip="Save Summary" CornerRadius="20" Height="40">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <FontIcon Glyph="&#xE74E;" FontSize="14" Foreground="#00E5FF"/>
-                                        <TextBlock Text="Summary" FontSize="12" FontWeight="SemiBold"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button x:Name="copy_btn" Click="copyButton_Click" Visibility="Collapsed" Padding="12,0" Height="40" CornerRadius="20">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <SymbolIcon Symbol="Copy" Foreground="#00E5FF"/>
-                                        <TextBlock x:Name="CopyButtonText" Text="Copy" FontSize="12" FontWeight="SemiBold"/>
-                                    </StackPanel>
-                                </Button>
+                        <StackPanel x:Name="EnrollmentPanel" Orientation="Vertical" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Center" MaxWidth="600">
+                            <TextBlock Text="Please read the following text naturally:" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#1E293B"/>
+                            <Border Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1" Padding="24" CornerRadius="16">
+                                <TextBlock Text="&#x22;I am recording my voice profile for the clinical summarisation system. This will allow the application to recognize my voice and accurately separate it from the patient's voice during our consultation. I am speaking clearly and at a normal volume.&#x22;" 
+                               TextWrapping="Wrap" FontStyle="Italic" TextAlignment="Center" FontSize="16" Foreground="#334155"/>
+                            </Border>
+                            <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+                                <Button x:Name="finishEnrollment_btn" Content="Finish Calibration" Click="finishEnrollment_Click" Background="{StaticResource GradientAccentBrush}" Foreground="White" FontWeight="SemiBold" CornerRadius="20" Padding="24,10" BorderThickness="0"/>
+                                <Button x:Name="cancelEnrollment_btn" Content="Cancel" Click="cancelEnrollment_Click" CornerRadius="20" Padding="24,10" Foreground="#0B3B60"/>
                             </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
+                        </StackPanel>
 
-            <ContentDialog x:Name="AppraisalDialog" Title="CREATE APPRAISAL" MaxHeight="1000" CornerRadius="24">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Spacing="16">
+                            <TextBox x:Name="MyTextBox" 
+                                 Width="640" Height="240" 
+                                 TextWrapping="Wrap" AcceptsReturn="True" 
+                                 PlaceholderText="AI Summarisation output..."
+                                 Visibility="Collapsed"
+                                 Background="#B3FFFFFF"
+                                 BorderBrush="#CCCCCC"
+                                 Foreground="#1E293B"
+                                 CornerRadius="16"
+                                 Padding="16"/>
+
+                            <Grid x:Name="PostSummarisationButtons" Width="640" Visibility="Collapsed">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Button Grid.Column="0" 
+                                    x:Name="createAppraisal_btn" 
+                                    Content="Generate Appraisal" 
+                                    Click="createAppraisal_Click" 
+                                    Background="{StaticResource GradientAccentBrush}"
+                                    Foreground="White" FontWeight="SemiBold"
+                                    CornerRadius="20" Padding="24,10"
+                                    BorderThickness="0"
+                                    IsEnabled="True"/>
+
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                                    <Button x:Name="saveTranscript_btn" Click="saveTranscription_Click" ToolTipService.ToolTip="Save Transcript" CornerRadius="20" Height="40" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <FontIcon Glyph="&#xE74E;" FontSize="14" Foreground="#0B3B60"/>
+                                            <TextBlock Text="Transcript" FontSize="12" FontWeight="SemiBold" Foreground="#0B3B60"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button x:Name="saveSummarisation_btn" Click="saveSummarisation_Click" ToolTipService.ToolTip="Save Summary" CornerRadius="20" Height="40" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <FontIcon Glyph="&#xE74E;" FontSize="14" Foreground="#0B3B60"/>
+                                            <TextBlock Text="Summary" FontSize="12" FontWeight="SemiBold" Foreground="#0B3B60"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button x:Name="copy_btn" Click="copyButton_Click" Visibility="Collapsed" Padding="12,0" Height="40" CornerRadius="20" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <SymbolIcon Symbol="Copy" Foreground="#0B3B60"/>
+                                            <TextBlock x:Name="CopyButtonText" Text="Copy" FontSize="12" FontWeight="SemiBold" Foreground="#0B3B60"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
+
+            <ContentDialog x:Name="AppraisalDialog" Title="Create Appraisal" MaxHeight="1000" CornerRadius="24">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -250,18 +238,18 @@
                     </Grid.RowDefinitions>
                     <ScrollViewer Grid.Row="0" Margin="0,0,-20,0" Padding="0,0,20,0" VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="15" Width="500">
-                            <TextBox x:Name="AppraisalNameBox" Header="Appraisal Name" PlaceholderText="e.g., Annual Review, Post-Op Check..." CornerRadius="8"/>
-                            <TextBox x:Name="AppraisalSummaryBox" Header="Summarisation" AcceptsReturn="True" Height="150" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" CornerRadius="8"/>
-                            <TextBox x:Name="AppraisalTagsBox" Header="Tags" PlaceholderText="e.g., follow-up, urgent, asthma..." CornerRadius="8"/>
-                            <TextBox x:Name="AppraisalNotesBox" Header="Appraisal Notes" AcceptsReturn="True" Height="100" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" CornerRadius="8"/>
+                            <TextBox x:Name="AppraisalNameBox" Header="Appraisal Name" PlaceholderText="e.g., Annual Review..." CornerRadius="8" Background="#B3FFFFFF"/>
+                            <TextBox x:Name="AppraisalSummaryBox" Header="Summarisation" AcceptsReturn="True" Height="150" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" CornerRadius="8" Background="#B3FFFFFF"/>
+                            <TextBox x:Name="AppraisalTagsBox" Header="Tags" PlaceholderText="e.g., follow-up, urgent..." CornerRadius="8" Background="#B3FFFFFF"/>
+                            <TextBox x:Name="AppraisalNotesBox" Header="Appraisal Notes" AcceptsReturn="True" Height="100" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" CornerRadius="8" Background="#B3FFFFFF"/>
                         </StackPanel>
                     </ScrollViewer>
-                    <Grid Grid.Row="1" Background="#1A000000" Margin="-24,24,-24,-24" Padding="24" ColumnSpacing="12">
+                    <Grid Grid.Row="1" Background="#0D000000" Margin="-24,24,-24,-24" Padding="24" ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="Save Data" HorizontalAlignment="Stretch" Background="{StaticResource NeonAccentBrush}" Foreground="Black" FontWeight="Bold" CornerRadius="8" Click="appraisalDialog_SaveClick"/>
+                        <Button Grid.Column="0" Content="Save Data" HorizontalAlignment="Stretch" Background="{StaticResource GradientAccentBrush}" Foreground="White" FontWeight="SemiBold" CornerRadius="8" BorderThickness="0" Click="appraisalDialog_SaveClick"/>
                         <Button Grid.Column="1" Content="Cancel" HorizontalAlignment="Stretch" CornerRadius="8" Click="appraisalDialog_CancelClick"/>
                     </Grid>
                 </Grid>
@@ -276,13 +264,13 @@
 
             <StackPanel Grid.Row="0" Spacing="16" Padding="40,32,40,10">
                 <RelativePanel>
-                    <TextBlock Text="APPRAISAL ARCHIVE" FontWeight="Black" FontSize="20" CharacterSpacing="100" RelativePanel.AlignLeftWithPanel="True" Foreground="#00E5FF"/>
-                    <Button Content="Return to Recording" Click="CloseAppraisals_Click" RelativePanel.AlignRightWithPanel="True" CornerRadius="16" Background="#1AFFFFFF"/>
+                    <TextBlock Text="Appraisal Archive" FontWeight="SemiBold" FontSize="20" RelativePanel.AlignLeftWithPanel="True" Foreground="#0B3B60"/>
+                    <Button Content="Return to Recording" Click="CloseAppraisals_Click" RelativePanel.AlignRightWithPanel="True" CornerRadius="16" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1" Foreground="#0B3B60"/>
                 </RelativePanel>
 
                 <Grid ColumnDefinitions="*, Auto" Margin="0,10,0,0">
-                    <TextBox x:Name="NameSearchBox" PlaceholderText="Search archive by name..." TextChanged="RenderAppraisalsList" Margin="0,0,16,0" CornerRadius="12" Background="#1A000000"/>
-                    <Button Grid.Column="1" Content="Filter by Tags" CornerRadius="12" Height="32">
+                    <TextBox x:Name="NameSearchBox" PlaceholderText="Search archive by name..." TextChanged="RenderAppraisalsList" Margin="0,0,16,0" CornerRadius="12" Background="#B3FFFFFF" BorderBrush="#CCCCCC"/>
+                    <Button Grid.Column="1" Content="Filter by Tags" CornerRadius="12" Height="32" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1" Foreground="#0B3B60">
                         <Button.Flyout>
                             <Flyout>
                                 <StackPanel Width="250" Spacing="10">
@@ -301,7 +289,7 @@
             <GridView Grid.Row="1" x:Name="AppraisalsListContainer" Padding="40,10,40,40" SelectionMode="None" HorizontalAlignment="Center" IsItemClickEnabled="False"/>
         </Grid>
 
-        <ContentDialog x:Name="HistoryDialog" Title="EDIT ARCHIVE ENTRY" MaxHeight="1000" CornerRadius="24">
+        <ContentDialog x:Name="HistoryDialog" Title="Edit Archive Entry" MaxHeight="1000" CornerRadius="24">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -309,21 +297,21 @@
                 </Grid.RowDefinitions>
                 <ScrollViewer Grid.Row="0" Margin="0,0,-20,0" Padding="0,0,20,0" VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="15" Width="500">
-                        <TextBox x:Name="HistoryNameBox" Header="Appraisal Name" PlaceholderText="e.g., Annual Review..." CornerRadius="8"/>
-                        <TextBox x:Name="HistorySummaryBox" Header="Summarisation" AcceptsReturn="True" Height="150" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" CornerRadius="8"/>
-                        <TextBox x:Name="HistoryTagsBox" Header="Tags" PlaceholderText="e.g., follow-up, urgent..." CornerRadius="8"/>
-                        <TextBox x:Name="HistoryNotesBox" Header="Appraisal Notes" AcceptsReturn="True" Height="100" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" CornerRadius="8"/>
+                        <TextBox x:Name="HistoryNameBox" Header="Appraisal Name" PlaceholderText="e.g., Annual Review..." CornerRadius="8" Background="#B3FFFFFF"/>
+                        <TextBox x:Name="HistorySummaryBox" Header="Summarisation" AcceptsReturn="True" Height="150" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" CornerRadius="8" Background="#B3FFFFFF"/>
+                        <TextBox x:Name="HistoryTagsBox" Header="Tags" PlaceholderText="e.g., follow-up, urgent..." CornerRadius="8" Background="#B3FFFFFF"/>
+                        <TextBox x:Name="HistoryNotesBox" Header="Appraisal Notes" AcceptsReturn="True" Height="100" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" CornerRadius="8" Background="#B3FFFFFF"/>
                     </StackPanel>
                 </ScrollViewer>
-                <Grid Grid.Row="1" Background="#1A000000" Margin="-24,24,-24,-24" Padding="24" ColumnSpacing="12">
+                <Grid Grid.Row="1" Background="#0D000000" Margin="-24,24,-24,-24" Padding="24" ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Button Grid.Column="0" Content="Update" HorizontalAlignment="Stretch" Background="{StaticResource NeonAccentBrush}" Foreground="Black" FontWeight="Bold" CornerRadius="8" Click="HistoryDialog_SaveClick"/>
-                    <Button Grid.Column="1" Content="Delete" HorizontalAlignment="Stretch" CornerRadius="8" Background="#33FF0055" BorderBrush="#80FF0055" Foreground="#FF5588" Click="HistoryDialog_DeleteClick"/>
-                    <Button Grid.Column="2" Content="Exit" HorizontalAlignment="Stretch" CornerRadius="8" Click="HistoryDialog_CancelClick"/>
+                    <Button Grid.Column="0" Content="Update" HorizontalAlignment="Stretch" Background="{StaticResource GradientAccentBrush}" Foreground="White" FontWeight="SemiBold" CornerRadius="8" BorderThickness="0" Click="HistoryDialog_SaveClick"/>
+                    <Button Grid.Column="1" Content="Delete" HorizontalAlignment="Stretch" CornerRadius="8" Background="#1AFF0055" BorderThickness="0" Foreground="#E11D48" Click="HistoryDialog_DeleteClick"/>
+                    <Button Grid.Column="2" Content="Exit" HorizontalAlignment="Stretch" CornerRadius="8" Background="#80FFFFFF" BorderThickness="1" BorderBrush="#B3FFFFFF" Click="HistoryDialog_CancelClick"/>
                 </Grid>
             </Grid>
         </ContentDialog>
