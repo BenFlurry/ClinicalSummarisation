@@ -48,6 +48,9 @@ namespace winrt::ClinicalSummarisation::implementation {
                 StatusText().Text(L"Recording Voice Profile");
                 StatusSpinner().Visibility(Visibility::Visible);
                 EnrollmentPanel().Visibility(Visibility::Visible);
+                Setting_btn().Flyout().Hide();
+                Help_btn().Flyout().Hide();
+                Info_btn().Flyout().Hide();
                 break;
 
             case AppState::WaitingRecording:
