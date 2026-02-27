@@ -38,15 +38,15 @@
 
                 <AcrylicBrush x:Key="InAppBlurBrush" 
                               TintColor="#F8FAFC" 
-                              TintOpacity="0.55" 
+                              TintOpacity="0.30" 
                               FallbackColor="#F8FAFC" />
             </ResourceDictionary>
         </Grid.Resources>
 
         <Grid>
-            <Ellipse Width="1200" Height="1200" Fill="#A1C4FD" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-300,-400,0,0"/>
-            <Ellipse Width="1000" Height="1000" Fill="#E0C3FC" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-200,-300"/>
-            <Ellipse Width="1100" Height="800" Fill="#C2E9FB" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.8"/>
+            <Ellipse Width="900" Height="900" Fill="#87CEFA" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-200,-200,0,0" Opacity="0.8"/>
+            <Ellipse Width="1000" Height="1000" Fill="#DDA0DD" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-200,-200" Opacity="0.8"/>
+            <Ellipse Width="1100" Height="700" Fill="#E0FFFF" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.6"/>
         </Grid>
 
         <Rectangle Fill="{StaticResource InAppBlurBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
@@ -134,100 +134,94 @@
             </Grid>
 
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,8,0,0">
-                <Border HorizontalAlignment="Center" VerticalAlignment="Stretch" 
-                        Background="Transparent" BorderThickness="0" 
-                        CornerRadius="24" Padding="24" Margin="12">
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+                        <TextBlock x:Name="StatusText" 
+                                   Text="Application loading..." 
+                                   FontWeight="SemiBold" FontSize="22"
+                                   TextAlignment="Center"
+                                   Foreground="#0B3B60"/>
+                        <ProgressRing x:Name="StatusSpinner" 
+                                      IsActive="True" 
+                                      Width="24" Height="24" 
+                                      Visibility="Collapsed"
+                                      Foreground="#0B3B60"/>
+                    </StackPanel>
 
-                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Top" Spacing="16" Margin="0,40,0,0">
+                    <Button x:Name="initialEnrollVoice_btn" Content="Enroll Voice" Click="enrollVoice_Click" IsEnabled="False" Visibility="Collapsed" CornerRadius="20" Padding="24,10"/>
 
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16">
-                            <TextBlock x:Name="StatusText" 
-                                       Text="Application loading..." 
-                                       FontWeight="Bold" FontSize="32"
-                                       TextAlignment="Center"
-                                       Foreground="#0B3B60"/>
-                            <ProgressRing x:Name="StatusSpinner" 
-                                          IsActive="True" 
-                                          Width="36" Height="36" 
-                                          Visibility="Collapsed"
-                                          Foreground="#0B3B60"/>
-                        </StackPanel>
+                    <StackPanel x:Name="ControlButtons" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center" Visibility="Collapsed"
+                                Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1" CornerRadius="28" Padding="6">
 
-                        <Button x:Name="initialEnrollVoice_btn" Content="Enroll Voice" Click="enrollVoice_Click" IsEnabled="False" Visibility="Collapsed" CornerRadius="20" Padding="24,10"/>
+                        <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click" Height="44" Padding="24,0" CornerRadius="22" Background="{StaticResource GradientAccentBrush}" Foreground="White" FontWeight="SemiBold" BorderThickness="0"/>
+                        <Button x:Name="stopRecording_btn" Content="Stop Recording" Click="stopRecording_Click" IsEnabled="False" Height="44" Padding="24,0" CornerRadius="22" Background="Transparent" Foreground="#0B3B60" BorderThickness="0"/>
+                        <Button x:Name="cancelRecording_btn" Content="Cancel" Click="cancelRecording_Click" IsEnabled="False" Height="44" Padding="24,0" CornerRadius="22" Background="Transparent" Foreground="#0B3B60" BorderThickness="0"/>
+                    </StackPanel>
 
-                        <StackPanel x:Name="ControlButtons" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center" Visibility="Collapsed"
-                                    Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1" CornerRadius="28" Padding="6">
-
-                            <Button x:Name="startRecording_btn" Content="Start Recording" Click="startRecording_Click" Height="44" Padding="24,0" CornerRadius="22" Background="{StaticResource GradientAccentBrush}" Foreground="White" FontWeight="SemiBold" BorderThickness="0"/>
-                            <Button x:Name="stopRecording_btn" Content="Stop Recording" Click="stopRecording_Click" IsEnabled="False" Height="44" Padding="24,0" CornerRadius="22" Background="Transparent" Foreground="#0B3B60" BorderThickness="0"/>
-                            <Button x:Name="cancelRecording_btn" Content="Cancel" Click="cancelRecording_Click" IsEnabled="False" Height="44" Padding="24,0" CornerRadius="22" Background="Transparent" Foreground="#0B3B60" BorderThickness="0"/>
-                        </StackPanel>
-
-                        <StackPanel x:Name="EnrollmentPanel" Orientation="Vertical" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Center" MaxWidth="600">
-                            <TextBlock Text="Please read the following text naturally:" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#1E293B"/>
-                            <Border Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1" Padding="24" CornerRadius="16">
-                                <TextBlock Text="&#x22;I am recording my voice profile for the clinical summarisation system. This will allow the application to recognize my voice and accurately separate it from the patient's voice during our consultation. I am speaking clearly and at a normal volume.&#x22;" 
-                               TextWrapping="Wrap" FontStyle="Italic" TextAlignment="Center" FontSize="16" Foreground="#334155"/>
-                            </Border>
-                            <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
-                                <Button x:Name="finishEnrollment_btn" Content="Finish Calibration" Click="finishEnrollment_Click" Background="{StaticResource GradientAccentBrush}" Foreground="White" FontWeight="SemiBold" CornerRadius="20" Padding="24,10" BorderThickness="0"/>
-                                <Button x:Name="cancelEnrollment_btn" Content="Cancel" Click="cancelEnrollment_Click" CornerRadius="20" Padding="24,10" Foreground="#0B3B60"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Spacing="16">
-                            <TextBox x:Name="MyTextBox" 
-                                 Width="640" Height="240" 
-                                 TextWrapping="Wrap" AcceptsReturn="True" 
-                                 PlaceholderText="AI Summarisation output..."
-                                 Visibility="Collapsed"
-                                 Background="#B3FFFFFF"
-                                 BorderBrush="#CCCCCC"
-                                 Foreground="#1E293B"
-                                 CornerRadius="16"
-                                 Padding="16"/>
-
-                            <Grid x:Name="PostSummarisationButtons" Width="640" Visibility="Collapsed">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Button Grid.Column="0" 
-                                    x:Name="createAppraisal_btn" 
-                                    Content="Generate Appraisal" 
-                                    Click="createAppraisal_Click" 
-                                    Background="{StaticResource GradientAccentBrush}"
-                                    Foreground="White" FontWeight="SemiBold"
-                                    CornerRadius="20" Padding="24,10"
-                                    BorderThickness="0"
-                                    IsEnabled="True"/>
-
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                                    <Button x:Name="saveTranscript_btn" Click="saveTranscription_Click" ToolTipService.ToolTip="Save Transcript" CornerRadius="20" Height="40" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1">
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <FontIcon Glyph="&#xE74E;" FontSize="14" Foreground="#0B3B60"/>
-                                            <TextBlock Text="Transcript" FontSize="12" FontWeight="SemiBold" Foreground="#0B3B60"/>
-                                        </StackPanel>
-                                    </Button>
-                                    <Button x:Name="saveSummarisation_btn" Click="saveSummarisation_Click" ToolTipService.ToolTip="Save Summary" CornerRadius="20" Height="40" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1">
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <FontIcon Glyph="&#xE74E;" FontSize="14" Foreground="#0B3B60"/>
-                                            <TextBlock Text="Summary" FontSize="12" FontWeight="SemiBold" Foreground="#0B3B60"/>
-                                        </StackPanel>
-                                    </Button>
-                                    <Button x:Name="copy_btn" Click="copyButton_Click" Visibility="Collapsed" Padding="12,0" Height="40" CornerRadius="20" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1">
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <SymbolIcon Symbol="Copy" Foreground="#0B3B60"/>
-                                            <TextBlock x:Name="CopyButtonText" Text="Copy" FontSize="12" FontWeight="SemiBold" Foreground="#0B3B60"/>
-                                        </StackPanel>
-                                    </Button>
-                                </StackPanel>
-                            </Grid>
+                    <StackPanel x:Name="EnrollmentPanel" Orientation="Vertical" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Center" MaxWidth="600">
+                        <TextBlock Text="Please read the following text naturally:" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#1E293B"/>
+                        <Border Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1" Padding="24" CornerRadius="16">
+                            <TextBlock Text="&#x22;I am recording my voice profile for the clinical summarisation system. This will allow the application to recognize my voice and accurately separate it from the patient's voice during our consultation. I am speaking clearly and at a normal volume.&#x22;" 
+                           TextWrapping="Wrap" FontStyle="Italic" TextAlignment="Center" FontSize="16" Foreground="#334155"/>
+                        </Border>
+                        <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+                            <Button x:Name="finishEnrollment_btn" Content="Finish Calibration" Click="finishEnrollment_Click" Background="{StaticResource GradientAccentBrush}" Foreground="White" FontWeight="SemiBold" CornerRadius="20" Padding="24,10" BorderThickness="0"/>
+                            <Button x:Name="cancelEnrollment_btn" Content="Cancel" Click="cancelEnrollment_Click" CornerRadius="20" Padding="24,10" Foreground="#0B3B60"/>
                         </StackPanel>
                     </StackPanel>
-                </Border>
+
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Spacing="16">
+                        <TextBox x:Name="MyTextBox" 
+                             Width="640" Height="200" 
+                             TextWrapping="Wrap" AcceptsReturn="True" 
+                             PlaceholderText="AI Summarisation output..."
+                             Visibility="Collapsed"
+                             Background="#B3FFFFFF"
+                             BorderBrush="#CCCCCC"
+                             Foreground="#1E293B"
+                             CornerRadius="16"
+                             Padding="16"/>
+
+                        <Grid x:Name="PostSummarisationButtons" Width="640" Visibility="Collapsed">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Grid.Column="0" 
+                                x:Name="createAppraisal_btn" 
+                                Content="Generate Appraisal" 
+                                Click="createAppraisal_Click" 
+                                Background="{StaticResource GradientAccentBrush}"
+                                Foreground="White" FontWeight="SemiBold"
+                                CornerRadius="20" Padding="24,10"
+                                BorderThickness="0"
+                                IsEnabled="True"/>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                                <Button x:Name="saveTranscript_btn" Click="saveTranscription_Click" ToolTipService.ToolTip="Save Transcript" CornerRadius="20" Height="40" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon Glyph="&#xE74E;" FontSize="14" Foreground="#0B3B60"/>
+                                        <TextBlock Text="Transcript" FontSize="12" FontWeight="SemiBold" Foreground="#0B3B60"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="saveSummarisation_btn" Click="saveSummarisation_Click" ToolTipService.ToolTip="Save Summary" CornerRadius="20" Height="40" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon Glyph="&#xE74E;" FontSize="14" Foreground="#0B3B60"/>
+                                        <TextBlock Text="Summary" FontSize="12" FontWeight="SemiBold" Foreground="#0B3B60"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="copy_btn" Click="copyButton_Click" Visibility="Collapsed" Padding="12,0" Height="40" CornerRadius="20" Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <SymbolIcon Symbol="Copy" Foreground="#0B3B60"/>
+                                        <TextBlock x:Name="CopyButtonText" Text="Copy" FontSize="12" FontWeight="SemiBold" Foreground="#0B3B60"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
             </ScrollViewer>
 
             <ContentDialog x:Name="AppraisalDialog" Title="Create Appraisal" MaxHeight="1000" CornerRadius="24">
