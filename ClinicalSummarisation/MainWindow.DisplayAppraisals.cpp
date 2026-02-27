@@ -125,8 +125,8 @@ namespace winrt::ClinicalSummarisation::implementation {
             Button itemButton;
 
             // --- GRID LAYOUT CHANGES ---
-            itemButton.Width(340);  // Fixed width makes them form columns
-            itemButton.Height(220); // Fixed height makes them uniform tiles
+            itemButton.Width(300);  // Fixed width makes them form columns
+            itemButton.Height(200); // Fixed height makes them uniform tiles
             itemButton.Margin({ 0, 0, 12, 12 }); // Spacing between grid items
             itemButton.HorizontalContentAlignment(HorizontalAlignment::Stretch);
             itemButton.VerticalContentAlignment(VerticalAlignment::Stretch); // Ensure content fills the tile
