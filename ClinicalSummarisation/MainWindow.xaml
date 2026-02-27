@@ -85,13 +85,14 @@
                                     <MenuFlyoutSeparator/>
                                     <StackPanel Spacing="8">
                                         <TextBlock Text="Summarisation Save Folder" FontWeight="SemiBold" Foreground="#1E293B"/>
-                                        <Button x:Name="changeSaveLocation_btn" Content="Change Location" Click="changeSaveLocation_Click" IsEnabled="True" CornerRadius="8"/>
+                                        <Button x:Name="changeSaveLocation_btn" Content="Change Location" Click="changeSaveLocation_Click" HorizontalAlignment="Stretch" IsEnabled="True" CornerRadius="8"/>
                                     </StackPanel>
                                     <MenuFlyoutSeparator/>
                                     <StackPanel Spacing="4">
                                         <TextBlock Text="AI Model Specs" FontWeight="SemiBold" Foreground="#1E293B"/>
-                                        <TextBlock Text="Whisper: Quantized (Int8)" Foreground="#64748B" FontSize="12"/>
-                                        <TextBlock Text="Med42: 4-bit (OpenVINO)" Foreground="#64748B" FontSize="12"/>
+                                        <TextBlock Text="Whisper-medium int8 (OpenVINO)" Foreground="#64748B" FontSize="12"/>
+                                        <TextBlock Text="Med42-7b int4 (OpenVINO)" Foreground="#64748B" FontSize="12"/>
+                                        <TextBlock Text="Speechbrain ECAPA TDNN int4 (OpenVINO)" Foreground="#64748B" FontSize="12"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Flyout>
@@ -110,9 +111,23 @@
                                 <Flyout Placement="BottomEdgeAlignedRight">
                                     <StackPanel MaxWidth="300" Spacing="5">
                                         <TextBlock Text="Disclaimer" FontWeight="SemiBold" FontSize="14" Foreground="#0B3B60"/>
+                                        <StackPanel>
+                                            <TextBlock TextWrapping="Wrap" Foreground="#475569">
+                                                This application was created as part of a final year project with UCL in partnership with Intel for the NHS as part of the IXN scheme pwered by a Llama3 model finetined with medical data from reputable sources.
+                                            </TextBlock>
+                                            <TextBlock TextWrapping="Wrap" Foreground="#475569">
+                                                The summarisations are a guide and can have mistakes therefore should not be taken for absolute truth.
+                                            </TextBlock>
+                                            <TextBlock TextWrapping="Wrap" Foreground="#475569">
+                                                As the application is offline, there is no data sharing with any source of any kind, all data stored on device by this application is encrypted.
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <MenuFlyoutSeparator />
+                                        <TextBlock Text="Requirements" FontWeight="SemiBold" FontSize="14" Foreground="#0B3B60"/>
                                         <TextBlock TextWrapping="Wrap" Foreground="#475569">
-                                            This application was created as part of a final year project with UCL in partnership with Intel. Completely offline and powered by OpenVINO.
+                                            This requires an Lunarlake Intel AIPC with both Intel CPU and GPU along with minimum 32GB RAM
                                         </TextBlock>
+
                                     </StackPanel>
                                 </Flyout>
                             </Button.Flyout>
@@ -153,9 +168,14 @@
                     </StackPanel>
 
                     <StackPanel x:Name="EnrollmentPanel" Orientation="Vertical" Spacing="20" Visibility="Collapsed" HorizontalAlignment="Center" MaxWidth="600">
-                        <TextBlock Text="Please read the following text naturally:" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#1E293B"/>
+                        <TextBlock TextWrapping="WrapWholeWords" Text="Please read the following text naturally to allow the application to determine at which point the patient or the doctor is speaking to provide accurate transcripts" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#1E293B"/>
                         <Border Background="#80FFFFFF" BorderBrush="#B3FFFFFF" BorderThickness="1" Padding="24" CornerRadius="16">
-                            <TextBlock Text="&#x22;I am recording my voice profile for the clinical summarisation system...&#x22;" TextWrapping="Wrap" FontStyle="Italic" TextAlignment="Center" FontSize="16" Foreground="#334155"/>
+                            <TextBlock Text="&#x22;I am recording my voice profile for the clinical summarisation system. This will allow the application to recognize my voice and accurately separate it from the patient's voice during our consultation. I am speaking clearly and at a normal volume.&#x22;" 
+                               TextWrapping="Wrap" 
+                               FontStyle="Italic" 
+                               TextAlignment="Center" 
+                               FontSize="16" 
+                               Foreground="#334155"/>
                         </Border>
                         <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
                             <Button x:Name="finishEnrollment_btn" Content="Finish Calibration" Click="finishEnrollment_Click" Background="{StaticResource GradientAccentBrush}" Foreground="White" FontWeight="SemiBold" CornerRadius="20" Padding="24,10" BorderThickness="0"/>
@@ -254,12 +274,14 @@
           x:Name="AppraisalsListContainer" 
           Padding="40,10,40,40" 
           SelectionMode="None" 
-          HorizontalAlignment="Center" 
+          HorizontalAlignment="Stretch" 
+          HorizontalContentAlignment="Center"
           IsItemClickEnabled="False">
 
                 <GridView.ItemsPanel>
                     <ItemsPanelTemplate>
                         <ItemsWrapGrid Orientation="Horizontal" 
+                           MaximumRowsOrColumns="2"
                            HorizontalAlignment="Center"/>
                     </ItemsPanelTemplate>
                 </GridView.ItemsPanel>
@@ -267,8 +289,7 @@
                 <GridView.ItemContainerStyle>
                     <Style TargetType="GridViewItem">
                         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        <Setter Property="Margin" Value="10"/>
-                        <Setter Property="Width" Value="320"/>
+                        <Setter Property="Margin" Value="4"/>
                     </Style>
                 </GridView.ItemContainerStyle>
             </GridView>
